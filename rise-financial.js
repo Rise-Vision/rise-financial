@@ -390,4 +390,20 @@ var financialVersion = "1.2.0";
   }();
 
   Polymer(RiseFinancial);
+
+  function sortInstruments(instrumentMap) {
+    var list = Object.keys(instrumentMap).map(function ($id) {
+      return Object.assign({ $id: $id }, instrumentMap[$id]);
+    }).sort(function (i1, i2) {
+      return _numberify(i1.order) - _numberify(i2.order);
+    });
+
+    return list;
+  }
+
+  function _numberify(x) {
+    // if number is not defined or is invalid, assign the infinity
+    // value to make sure the item stay at the bottom
+    return Number.isInteger(x) ? x : Number.POSITIVE_INFINITY;
+  }
 })();

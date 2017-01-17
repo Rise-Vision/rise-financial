@@ -26,27 +26,26 @@
 
   const financialRequest = document.querySelector( "#request" ),
     fields = [ "lastPrice", "netChange" ],
+    inst1 = {
+      category: "Stocks",
+      index: 0,
+      name: "Alcoa",
+      symbol: "AA.N",
+      $id: "AA?N"
+    },
+    inst2 = {
+      category: "Stocks",
+      index: 1,
+      name: "Dow Jones",
+      symbol: ".DJI",
+      $id: "?DJI"
+    },
     instrument = {
-      "AA?N": {
-        category: "Stocks",
-        index: 0,
-        name: "Alcoa",
-        symbol: "AA.N",
-      }
+      "AA?N": inst1
     },
     instruments = {
-      "AA?N": {
-        category: "Stocks",
-        index: 0,
-        name: "Alcoa",
-        symbol: "AA.N",
-      },
-      "?DJI": {
-        category: "Stocks",
-        index: 1,
-        name: "Dow Jones",
-        symbol: ".DJI",
-      }
+      "AA?N": inst1,
+      "?DJI": inst2
     };
 
   // mock logger getting display id and force handler of RC not running
@@ -237,7 +236,7 @@
           }
         } );
 
-        assert.deepEqual( financialRequest._instruments, instrument );
+        assert.deepEqual( financialRequest._instruments, [ inst1 ] );
       } );
 
       test( "should not set _instruments", () => {
@@ -247,7 +246,7 @@
           }
         } );
 
-        assert.deepEqual( financialRequest._instruments, {} );
+        assert.deepEqual( financialRequest._instruments, [] );
       } );
 
     } );
@@ -259,10 +258,10 @@
       } );
 
       test( "should save instruments to local storage", () => {
-        financialRequest._saveInstruments( instrument );
+        financialRequest._saveInstruments( [ inst1 ] );
 
-        assert.equal( localStorage.getItem( "risefinancial_Stocks" ),
-          '{"AA?N":{"category":"Stocks","index":0,"name":"Alcoa","symbol":"AA.N"}}' ); // eslint-disable-line quotes
+        assert.deepEqual( JSON.parse( localStorage.getItem( "risefinancial_Stocks" ) ),
+          [ inst1 ] ); // eslint-disable-line quotes
       } );
 
     } );
