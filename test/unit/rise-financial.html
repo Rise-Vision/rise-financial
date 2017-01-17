@@ -26,28 +26,26 @@
 
   const financialRequest = document.querySelector( "#request" ),
     fields = [ "lastPrice", "netChange" ],
-    instrument = {
-      "AA?N": {
-        category: "Stocks",
-        index: 0,
-        name: "Alcoa",
-        symbol: "AA.N",
-      }
+    inst1 = {
+      category: "Stocks",
+      index: 0,
+      name: "Alcoa",
+      symbol: "AA.N",
+      $id: "AA?N"
     },
-    instruments = {
-      "AA?N": {
-        category: "Stocks",
-        index: 0,
-        name: "Alcoa",
-        symbol: "AA.N",
-      },
-      "?DJI": {
-        category: "Stocks",
-        index: 1,
-        name: "Dow Jones",
-        symbol: ".DJI",
-      }
-    };
+    inst2 = {
+      category: "Stocks",
+      index: 1,
+      name: "Dow Jones",
+      symbol: ".DJI",
+      $id: "?DJI"
+    },
+    instrument = {
+      "AA?N": inst1
+    },
+    instruments = [
+      inst1, inst2
+    ];
 
   // mock logger getting display id and force handler of RC not running
   sinon.stub( financialRequest.$.logger.$.displayId, "generateRequest", () => {
@@ -237,7 +235,7 @@
           }
         } );
 
-        assert.deepEqual( financialRequest._instruments, instrument );
+        assert.deepEqual( financialRequest._instruments, [ inst1 ] );
       } );
 
       test( "should not set _instruments", () => {
@@ -247,7 +245,7 @@
           }
         } );
 
-        assert.deepEqual( financialRequest._instruments, {} );
+        assert.deepEqual( financialRequest._instruments, [] );
       } );
 
     } );
@@ -259,10 +257,10 @@
       } );
 
       test( "should save instruments to local storage", () => {
-        financialRequest._saveInstruments( instrument );
+        financialRequest._saveInstruments( [ inst1 ] );
 
-        assert.equal( localStorage.getItem( "risefinancial_Stocks" ),
-          '{"AA?N":{"category":"Stocks","index":0,"name":"Alcoa","symbol":"AA.N"}}' ); // eslint-disable-line quotes
+        assert.deepEqual( JSON.parse( localStorage.getItem( "risefinancial_Stocks" ) ),
+          [ inst1 ] ); // eslint-disable-line quotes
       } );
 
     } );
@@ -277,7 +275,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        assert.deepEqual( financialRequest._getParams( instrument, fields ), expected );
+        assert.deepEqual( financialRequest._getParams( [ inst1 ], fields ), expected );
       } );
 
       test( "should return query parameters object with no 'tq' property", () => {
@@ -287,7 +285,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        assert.deepEqual( financialRequest._getParams( instrument, [] ), expected );
+        assert.deepEqual( financialRequest._getParams( [ inst1 ], [] ), expected );
       } );
 
     } );
@@ -340,7 +338,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        financialRequest._getData( props, instrument, fields );
+        financialRequest._getData( props, [ inst1 ], fields );
 
         assert.deepEqual( financial.params, expected );
       } );
@@ -368,7 +366,7 @@
       } );
 
       teardown( () => {
-        financialRequest._instruments = {};
+        financialRequest._instruments = [];
       } );
 
       test( "should pass instruments and data in 'rise-financial-response' event", ( done ) => {
@@ -481,7 +479,7 @@
     suite( "_getSymbols", () => {
 
       test( "should return empty string if no instruments", () => {
-        assert.equal( financialRequest._getSymbols( {} ), "" );
+        assert.equal( financialRequest._getSymbols( [] ), "" );
       } );
 
       test( "should return string of instrument symbols separated by |", () => {

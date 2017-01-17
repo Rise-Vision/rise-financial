@@ -51,14 +51,15 @@
     suite( "_getData", () => {
 
       const financial = document.getElementById( "financial" ),
-        instrument = {
-          "AA?N": {
+        instrument = [
+          {
             category: "Stocks",
             index: 0,
             name: "Alcoa",
             symbol: "AA.N",
+            $id: "AA?N",
           }
-        },
+        ],
         props = {
           type: "historical",
           duration: "1M",

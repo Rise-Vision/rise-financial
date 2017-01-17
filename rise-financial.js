@@ -109,7 +109,7 @@ var financialVersion = "1.2.2";
         this._dataPingReceived = false;
         this._instrumentsReceived = false;
         this._goPending = false;
-        this._instruments = {};
+        this._instruments = [];
         this._refreshPending = false;
         this._initialGo = true;
       }
@@ -202,9 +202,9 @@ var financialVersion = "1.2.2";
     }, {
       key: "_handleInstruments",
       value: function _handleInstruments(snapshot) {
-        var instruments = snapshot.val();
+        var instruments = snapshot.val() || {};
 
-        this._instruments = instruments ? instruments : {};
+        this._instruments = sortInstruments(instruments);
         this._saveInstruments(this._instruments);
         this._instrumentsReceived = true;
 
@@ -303,8 +303,9 @@ var financialVersion = "1.2.2";
     }, {
       key: "_getSymbols",
       value: function _getSymbols(instruments) {
-        var symbols = Object.keys(instruments).map(function (key) {
-          return instruments[key].symbol;
+        var symbols = instruments.map(function (_ref) {
+          var symbol = _ref.symbol;
+          return symbol;
         });
 
         return symbols.join("|");
@@ -411,4 +412,20 @@ var financialVersion = "1.2.2";
   }();
 
   Polymer(RiseFinancial);
+
+  function sortInstruments(instrumentMap) {
+    var list = Object.keys(instrumentMap).map(function ($id) {
+      return Object.assign({ $id: $id }, instrumentMap[$id]);
+    }).sort(function (i1, i2) {
+      return _numberify(i1.order) - _numberify(i2.order);
+    });
+
+    return list;
+  }
+
+  function _numberify(x) {
+    // if number is not defined or is invalid, assign the infinity
+    // value to make sure the item stay at the bottom
+    return Number.isInteger(x) ? x : Number.POSITIVE_INFINITY;
+  }
 })();
