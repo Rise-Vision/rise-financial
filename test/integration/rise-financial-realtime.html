@@ -57,6 +57,18 @@
 
     } );
 
+    suite( "financial list id change", () => {
+
+      test( "should call _financialListChanged()", () => {
+        let changedStub = sinon.stub( financialRequest, "_financialListChanged" );
+
+        financialRequest.setAttribute( "financial-list", "abc123" );
+        assert.isTrue( changedStub.calledOnce );
+        changedStub.restore();
+      } );
+
+    } );
+
   } );
 </script>
 </body>
