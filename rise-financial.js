@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.2.0";
+var financialVersion = "1.2.1";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -80,7 +80,8 @@ var financialVersion = "1.2.0";
            */
           financialList: {
             type: String,
-            value: ""
+            value: "",
+            observer: "_financialListChanged"
           },
 
           /**
@@ -332,6 +333,20 @@ var financialVersion = "1.2.0";
         });
 
         this._log(params);
+      }
+    }, {
+      key: "_financialListChanged",
+      value: function _financialListChanged() {
+        // ensure a go() call gets made when instruments handled via _handleInstruments()
+        this._goPending = true;
+
+        if (!this._initialGo) {
+          this.cancelDebouncer("refresh");
+          // make sure cached data isn't provided
+          this._refreshPending = true;
+        }
+
+        this._getInstruments();
       }
     }, {
       key: "attached",

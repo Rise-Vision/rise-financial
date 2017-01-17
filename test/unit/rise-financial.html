@@ -490,6 +490,49 @@
 
     } );
 
+    suite( "_financialListChanged", () => {
+      let instrumentsStub;
+
+      setup( () => {
+        instrumentsStub = sinon.stub( financialRequest, "_getInstruments" );
+      } );
+
+      teardown( () => {
+        financialRequest._goPending = false;
+        financialRequest._refreshPending = false;
+        financialRequest._initialGo = true;
+        instrumentsStub.restore();
+      } );
+
+      test( "should flag that a go() call is pending", () => {
+        financialRequest._goPending = false;
+        financialRequest._financialListChanged();
+
+        assert.isTrue( financialRequest._goPending );
+      } );
+
+      test( "should cancel refresh timer and flag refresh is pending if go() call has executed before", () => {
+        let cancelStub = sinon.stub( financialRequest, "cancelDebouncer" );
+
+        financialRequest._refreshPending = false;
+        financialRequest._initialGo = false;
+
+        financialRequest._financialListChanged();
+
+        assert.isTrue( cancelStub.calledOnce );
+        assert.isTrue( financialRequest._refreshPending );
+
+        cancelStub.restore();
+      } );
+
+      test( "should call _getInstruments()", () => {
+        financialRequest._financialListChanged();
+
+        assert.isTrue( instrumentsStub.calledOnce );
+      } );
+
+    } );
+
     suite( "ready", () => {
       let logStub;
 

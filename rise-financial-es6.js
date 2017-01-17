@@ -53,7 +53,8 @@
          */
         financialList: {
           type: String,
-          value: ""
+          value: "",
+          observer: "_financialListChanged"
         },
 
         /**
@@ -280,6 +281,19 @@
       } );
 
       this._log( params );
+    }
+
+    _financialListChanged() {
+      // ensure a go() call gets made when instruments handled via _handleInstruments()
+      this._goPending = true;
+
+      if ( !this._initialGo ) {
+        this.cancelDebouncer( "refresh" );
+        // make sure cached data isn't provided
+        this._refreshPending = true;
+      }
+
+      this._getInstruments();
     }
 
     attached() {
