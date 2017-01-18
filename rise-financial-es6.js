@@ -304,6 +304,10 @@
       this._instrumentsRef.off( "value", this._handleInstruments );
     }
 
+    /**
+     * Performs a request to obtain the financial data
+     *
+     */
     go() {
       if ( !this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived ) {
         this._goPending = true;
