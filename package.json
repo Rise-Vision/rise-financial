@@ -1,6 +1,6 @@
 {
   "name": "rise-financial",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Rise Vision web component for managing financial data",
   "scripts": {
     "test": "cross-env NODE_ENV=test gulp test",
