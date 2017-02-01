@@ -27,7 +27,7 @@
   } );
 
   gulp.task( "lint", () => {
-    return gulp.src( [ "./*.js", "test/**/*.html" ] )
+    return gulp.src( [ "./**/*.js", "./**/*.html" ] )
       .pipe( eslint() )
       .pipe( eslint.format() )
       .pipe( eslint.failAfterError() );

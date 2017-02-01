@@ -21,16 +21,18 @@
   <rise-financial instrument-fields='["instrument", "name", "lastPrice", "netChange"]'></rise-financial>
 
   <script>
-    const financial = document.querySelector( "rise-financial" ),
-      goBtn = document.querySelector("input[name='goBtn']"),
-      listIdInput = document.querySelector("input[name='list-id']");
+    /* eslint-disable no-console */
 
-    goBtn.addEventListener("click", function() {
-      if (listIdInput.value !== "") {
-        financial.setAttribute("financial-list", listIdInput.value);
+    const financial = document.querySelector( "rise-financial" ),
+      goBtn = document.querySelector( "input[name='goBtn']" ),
+      listIdInput = document.querySelector( "input[name='list-id']" );
+
+    goBtn.addEventListener( "click", function() {
+      if ( listIdInput.value !== "" ) {
+        financial.setAttribute( "financial-list", listIdInput.value );
         financial.go();
       }
-    });
+    } );
 
     financial.addEventListener( "rise-financial-response", ( e ) => {
       console.log( e.detail );
