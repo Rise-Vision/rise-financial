@@ -502,6 +502,17 @@
         instrumentsStub.restore();
       } );
 
+      test( "should not execute further if firebase app not initialized", () => {
+        let fbAppBackup = financialRequest._firebaseApp;
+
+        financialRequest._firebaseApp = null;
+        financialRequest._financialListChanged();
+
+        assert.equal( instrumentsStub.callCount, 0 );
+
+        financialRequest._firebaseApp = fbAppBackup;
+      } );
+
       test( "should flag that a go() call is pending", () => {
         financialRequest._goPending = false;
         financialRequest._financialListChanged();

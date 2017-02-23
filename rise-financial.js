@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.2.5";
+var financialVersion = "1.2.6";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -338,6 +338,10 @@ var financialVersion = "1.2.5";
     }, {
       key: "_financialListChanged",
       value: function _financialListChanged() {
+        if (!this._firebaseApp) {
+          return;
+        }
+
         // ensure a go() call gets made when instruments handled via _handleInstruments()
         this._goPending = true;
 
