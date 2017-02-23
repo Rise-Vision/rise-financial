@@ -282,6 +282,10 @@
     }
 
     _financialListChanged() {
+      if ( !this._firebaseApp ) {
+        return;
+      }
+
       // ensure a go() call gets made when instruments handled via _handleInstruments()
       this._goPending = true;
 
