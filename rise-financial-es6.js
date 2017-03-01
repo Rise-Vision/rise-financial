@@ -216,6 +216,8 @@
       }
 
       financial.params = params;
+
+      financial.generateRequest();
     }
 
     _handleData( e, resp ) {
@@ -318,10 +320,11 @@
 
       this._goPending = false;
 
-      if ( this._initialGo ) {
+      if ( this._initialGo || this._refreshPending ) {
         this._initialGo = false;
+        this._refreshPending = false;
 
-        // configure and execute initial request
+        // configure and execute request
         this._getData(
           {
             type: this.type,
@@ -334,18 +337,17 @@
         return;
       }
 
-      // execute new request when a refresh is pending
-      if ( this._refreshPending ) {
-        this._refreshPending = false;
-        this.$.financial.generateRequest();
-
-        return;
-      }
-
       // provide cached data (if available)
       this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
         if ( !cachedData ) {
-          this.$.financial.generateRequest();
+          this._getData(
+            {
+              type: this.type,
+              duration: this.duration,
+            },
+            this._instruments,
+            this.instrumentFields
+          );
         } else {
           this.fire( "rise-financial-response", cachedData );
         }
