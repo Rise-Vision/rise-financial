@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.2.6";
+var financialVersion = "1.2.7";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -260,6 +260,8 @@ var financialVersion = "1.2.6";
         }
 
         financial.params = params;
+
+        financial.generateRequest();
       }
     }, {
       key: "_handleData",
@@ -381,10 +383,11 @@ var financialVersion = "1.2.6";
 
         this._goPending = false;
 
-        if (this._initialGo) {
+        if (this._initialGo || this._refreshPending) {
           this._initialGo = false;
+          this._refreshPending = false;
 
-          // configure and execute initial request
+          // configure and execute request
           this._getData({
             type: this.type,
             duration: this.duration
@@ -393,18 +396,13 @@ var financialVersion = "1.2.6";
           return;
         }
 
-        // execute new request when a refresh is pending
-        if (this._refreshPending) {
-          this._refreshPending = false;
-          this.$.financial.generateRequest();
-
-          return;
-        }
-
         // provide cached data (if available)
         this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
           if (!cachedData) {
-            _this4.$.financial.generateRequest();
+            _this4._getData({
+              type: _this4.type,
+              duration: _this4.duration
+            }, _this4._instruments, _this4.instrumentFields);
           } else {
             _this4.fire("rise-financial-response", cachedData);
           }

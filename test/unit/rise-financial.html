@@ -315,6 +315,11 @@
       setup( () => {
         financial.url = "";
         financial.params = {};
+        sinon.stub( financialRequest.$.financial, "generateRequest" );
+      } );
+
+      teardown( () => {
+        financialRequest.$.financial.generateRequest.restore();
       } );
 
       test( "should not set attributes of JSONP component for an invalid type", () => {
