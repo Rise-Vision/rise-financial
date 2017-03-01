@@ -1,0 +1,37 @@
+machine:
+  environment:
+    YARN_VERSION: 0.17.8
+    PATH: "${PATH}:${HOME}/.yarn/bin"
+dependencies:
+  pre:
+    - |
+      if [[ ! -e ~/.yarn/bin/yarn || $(yarn --version) != "${YARN_VERSION}" ]]; then
+        curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version $YARN_VERSION
+      fi
+    # latest stable chrome
+    - curl -L -o google-chrome-stable.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    - sudo dpkg -i google-chrome-stable.deb
+    # make chrome lxc-friendly
+    - sudo sed -i 's|HERE/chrome\"|HERE/chrome\" --disable-setuid-sandbox|g' /opt/google/chrome/google-chrome
+    - rm google-chrome-stable.deb
+    - yarn global add gulp
+    - yarn global add web-component-tester
+  post:
+    - bower install
+  override:
+    - yarn install
+  cache_directories:
+    - ~/.yarn
+    - ~/.yarn-cache
+test:
+  override:
+    - NODE_ENV=test yarn run test
+deployment:
+  staging:
+    branch: /(feature|fix|chore).*/
+    commands:
+      - NODE_ENV=test yarn run build
+  production:
+    branch: master
+    commands:
+      - NODE_ENV=prod yarn run build

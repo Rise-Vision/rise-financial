@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>rise-financial Demo</title>
+
+  <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+
+  <link rel="import" href="../rise-financial.html">
+</head>
+<body unresolved>
+  <p>An example of <code>&lt;rise-financial&gt;</code>:</p>
+
+  <p>Enter your Financial List ID and click "Submit"</p>
+
+  <form style="margin-bottom: 10px">
+    <input type="text" style="width: 300px;" name="list-id" id="list-id" maxlength="100">
+    <input type="button" name="goBtn" value="Submit" />
+  </form>
+
+  <rise-financial instrument-fields='["instrument", "name", "lastPrice", "netChange"]'></rise-financial>
+
+  <script>
+    /* eslint-disable no-console */
+
+    const financial = document.querySelector( "rise-financial" ),
+      goBtn = document.querySelector( "input[name='goBtn']" ),
+      listIdInput = document.querySelector( "input[name='list-id']" );
+
+    goBtn.addEventListener( "click", function() {
+      if ( listIdInput.value !== "" ) {
+        financial.setAttribute( "financial-list", listIdInput.value );
+        financial.go();
+      }
+    } );
+
+    financial.addEventListener( "rise-financial-response", ( e ) => {
+      console.log( e.detail );
+    } );
+
+    financial.addEventListener( "rise-financial-no-data", () => {
+      console.log( "No data available" );
+    } );
+
+
+  </script>
+</body>
+</html>

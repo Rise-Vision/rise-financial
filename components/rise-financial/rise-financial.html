@@ -1,0 +1,65 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../byutv-jsonp/byutv-jsonp.html" />
+<link rel="import" href="../rise-logger/rise-logger.html">
+<link rel="import" href="../rise-data/rise-data.html">
+
+<!--
+`rise-financial` is a web component that works together with the [Rise Vision Financial Selector](https://selector.risevision.com/), a web app for managing financial content. It retrieves the financial list and its corresponding instruments from [Firebase](https://firebase.google.com/). Data is refreshed in realtime, so any changes that are made to a particular financial list in the Financial Selector are immediately propagated to the `rise-financial` component.
+
+The `financial-list` attribute is required which is to identify the financial list you want to target.
+A financial list id can be found in the URL when viewing it in Financial Selector
+(e.g. https://selector.risevision.com/displays/< DISPLAY ID >/financial-lists/< FINANCIAL LIST ID >).
+
+#### Example Usage
+
+<rise-financial financial-list="-abc123" instrument-fields='["instrument", "name", "lastPrice", "netChange"]'></rise-financial>
+
+<script>
+  const financial = document.querySelector('rise-financial');
+
+  // Respond to events it fires.
+  financial.addEventListener('rise-financial-response', ( e ) => {
+    console.log( e.detail );
+  });
+
+  // Request the financial data.
+  financial.go();
+</script>
+
+#### Type of Data
+
+To request realtime data, the `type` attribute can either be left off or it can be set to `realtime`. Valid values for the `instrument-fields` attribute for realtime data are: `accumulatedVolume`, `ask`, `bid`, `code`, `dayHigh`, `dayLow`, `daysOfWeek`, `endTime`, `historicClose`, `instrument`, `lastPrice`, `name`, `netChange`, `percentChange`, `startTime`, `timeZone`, `timeZoneOffset`, `tradeTime`, `updateInterval`, `yearHigh`, `yearLow`, `yield` and `yieldChange`.
+
+To request historical data, the `type` attribute must be set to `historical` and `duration` must be set to one of: `Day`, `Week`, `1M`, `3M`, `6M`, `1Y` or `5Y`. Valid values for the `instrument-fields` attribute for historical data are: `accumulatedVolume`, `closePrice`, `intervalVolume`, `percentChange` and `tradeTime`.
+
+If no `instrument-fields` attribute is provided, all fields are returned by default.
+
+For example, to retrieve all values within cells A1 to B2 of the worksheet:
+
+<rise-financial financial-list="-abc123" type="historical" duration="1M" instrument-fields='["closePrice", "percentChange"]'></rise-financial>
+
+@demo
+-->
+
+<dom-module id="rise-financial">
+  <template>
+    <byutv-jsonp
+      id="financial"
+      callback-value="callback"
+      on-response="_handleData"
+      on-error="_handleError"
+      debounce-duration="300">
+    </byutv-jsonp>
+
+    <rise-logger id="logger"></rise-logger>
+    <rise-data id="data" endpoint="financial"></rise-data>
+
+    <content></content>
+  </template>
+
+  <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase-database.js"></script>
+
+  <script src="rise-financial.js"></script>
+
+</dom-module>
