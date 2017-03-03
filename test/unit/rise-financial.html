@@ -426,7 +426,7 @@
         financialRequest._handleData( e, realTimeData );
 
         assert.equal( spy.args[ 0 ][ 0 ], financialRequest._getDataCacheKey() );
-        console.log(spy.args[ 0 ][ 1 ]);
+
         assert.deepEqual( spy.args[ 0 ][ 1 ], {
           instruments: instruments_cached,
           data: realTimeData.table,
