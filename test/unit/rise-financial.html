@@ -40,11 +40,28 @@
       symbol: ".DJI",
       $id: "?DJI"
     },
+    inst1_cached = {
+      category: "Stocks",
+      index: 0,
+      name: "Alcoa",
+      symbol: "AA.N",
+      id: undefined
+    },
+    inst2_cached = {
+      category: "Stocks",
+      index: 1,
+      name: "Dow Jones",
+      symbol: ".DJI",
+      id: undefined
+    },
     instrument = {
       "AA?N": inst1
     },
     instruments = [
       inst1, inst2
+    ],
+    instruments_cached = [
+      inst1_cached, inst2_cached
     ];
 
   // mock logger getting display id and force handler of RC not running
@@ -409,8 +426,9 @@
         financialRequest._handleData( e, realTimeData );
 
         assert.equal( spy.args[ 0 ][ 0 ], financialRequest._getDataCacheKey() );
+        console.log(spy.args[ 0 ][ 1 ]);
         assert.deepEqual( spy.args[ 0 ][ 1 ], {
-          instruments: instruments,
+          instruments: instruments_cached,
           data: realTimeData.table,
         } );
 
@@ -424,6 +442,10 @@
 
       setup( () => {
         logStub = sinon.stub( financialRequest, "_log" );
+        for ( let i = 0; i < instruments.length; i++ ) {
+          instruments[ i ].$id = instruments[ i ].id;
+          delete instruments[ i ].id;
+        }
       } );
 
       teardown( () => {
@@ -445,7 +467,7 @@
 
         sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
           return cb( {
-            instruments: instruments,
+            instruments: instruments_cached,
             data: realTimeData.table,
           } );
         } );
