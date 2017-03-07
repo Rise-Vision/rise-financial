@@ -3,7 +3,7 @@ var firebase = {
   initializeApp: ( config ) => {
     return config;
   },
-  apps : [],
+  apps: [],
   database: () => {
     return {
       ref: () => {
