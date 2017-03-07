@@ -220,6 +220,34 @@
       financial.generateRequest();
     }
 
+    _saveToCache( data ) {
+
+      for ( let i = 0; i < data.instruments.length; i++ ) {
+        data.instruments[ i ].id = data.instruments[ i ].$id;
+        delete data.instruments[ i ].$id;
+      }
+
+      this.$.data.saveItem( this._getDataCacheKey(), data );
+
+    }
+
+    _getFromCache( callback ) {
+
+      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+        if ( cachedData ) {
+
+          for ( let i = 0; i < cachedData.instruments.length; i++ ) {
+            cachedData.instruments[ i ].$id = cachedData.instruments[ i ].id;
+            delete cachedData.instruments[ i ].id;
+          }
+
+          callback( cachedData );
+        } else {
+          callback( null );
+        }
+      } );
+    }
+
     _handleData( e, resp ) {
       const response = {
         instruments: this._instruments,
@@ -229,7 +257,7 @@
         response.data = resp.table;
       }
 
-      this.$.data.saveItem( this._getDataCacheKey(), response );
+      this._saveToCache( response );
 
       this.fire( "rise-financial-response", response );
       this._startTimer();
@@ -244,7 +272,7 @@
 
       this._log( params );
 
-      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+      this._getFromCache( ( cachedData ) => {
         if ( cachedData ) {
           this.fire( "rise-financial-response", cachedData );
         } else {
@@ -338,7 +366,7 @@
       }
 
       // provide cached data (if available)
-      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+      this._getFromCache( ( cachedData ) => {
         if ( !cachedData ) {
           this._getData(
             {

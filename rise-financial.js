@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.2.7";
+var financialVersion = "1.2.8";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -264,6 +264,35 @@ var financialVersion = "1.2.7";
         financial.generateRequest();
       }
     }, {
+      key: "_saveToCache",
+      value: function _saveToCache(data) {
+
+        for (var i = 0; i < data.instruments.length; i++) {
+          data.instruments[i].id = data.instruments[i].$id;
+          delete data.instruments[i].$id;
+        }
+
+        this.$.data.saveItem(this._getDataCacheKey(), data);
+      }
+    }, {
+      key: "_getFromCache",
+      value: function _getFromCache(callback) {
+
+        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+          if (cachedData) {
+
+            for (var i = 0; i < cachedData.instruments.length; i++) {
+              cachedData.instruments[i].$id = cachedData.instruments[i].id;
+              delete cachedData.instruments[i].id;
+            }
+
+            callback(cachedData);
+          } else {
+            callback(null);
+          }
+        });
+      }
+    }, {
       key: "_handleData",
       value: function _handleData(e, resp) {
         var response = {
@@ -274,7 +303,7 @@ var financialVersion = "1.2.7";
           response.data = resp.table;
         }
 
-        this.$.data.saveItem(this._getDataCacheKey(), response);
+        this._saveToCache(response);
 
         this.fire("rise-financial-response", response);
         this._startTimer();
@@ -292,7 +321,7 @@ var financialVersion = "1.2.7";
 
         this._log(params);
 
-        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+        this._getFromCache(function (cachedData) {
           if (cachedData) {
             _this2.fire("rise-financial-response", cachedData);
           } else {
@@ -397,7 +426,7 @@ var financialVersion = "1.2.7";
         }
 
         // provide cached data (if available)
-        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+        this._getFromCache(function (cachedData) {
           if (!cachedData) {
             _this4._getData({
               type: _this4.type,
