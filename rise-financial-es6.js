@@ -187,7 +187,7 @@
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
-          tqx: "out:json;responseHandler:callback",
+          tqx: "out:json;responseHandler:callback" + this.financialList,
         },
         fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
@@ -295,8 +295,12 @@
       };
 
       // ensure firebase app has not been initialized already
-      if ( !this._firebaseApp && !firebase.apps.length ) {
-        this._firebaseApp = firebase.initializeApp( config.firebase );
+      if ( !this._firebaseApp ) {
+        if ( !firebase.apps.length ) {
+          this._firebaseApp = firebase.initializeApp( config.firebase );
+        } else {
+          this._firebaseApp = firebase.apps[ 0 ];
+        }
       }
 
       // listen for data ping received
