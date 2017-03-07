@@ -350,7 +350,7 @@ var financialVersion = "1.2.8";
           event: "ready"
         };
 
-        if (!this._firebaseApp) {
+        if (!this._firebaseApp && !firebase.apps.length) {
           this._firebaseApp = firebase.initializeApp(config.firebase);
         }
 
