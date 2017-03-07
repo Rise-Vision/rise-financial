@@ -187,7 +187,7 @@
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
-          tqx: "out:json;responseHandler:callback" + this.financialList,
+          tqx: "out:json;responseHandler:callback" + this.id,
         },
         fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
