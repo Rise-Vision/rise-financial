@@ -187,7 +187,7 @@
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
-          tqx: "out:json;responseHandler:callback",
+          tqx: "out:json;responseHandler:callback" + this.id,
         },
         fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
@@ -294,8 +294,13 @@
         event: "ready"
       };
 
+      // ensure firebase app has not been initialized already
       if ( !this._firebaseApp ) {
-        this._firebaseApp = firebase.initializeApp( config.firebase );
+        if ( !firebase.apps.length ) {
+          this._firebaseApp = firebase.initializeApp( config.firebase );
+        } else {
+          this._firebaseApp = firebase.apps[ 0 ];
+        }
       }
 
       // listen for data ping received

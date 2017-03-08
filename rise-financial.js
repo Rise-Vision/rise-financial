@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.2.8";
+var financialVersion = "1.3.0";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -230,7 +230,7 @@ var financialVersion = "1.2.8";
         return Object.assign({}, {
           id: this.displayId,
           code: this._getSymbols(instruments),
-          tqx: "out:json;responseHandler:callback"
+          tqx: "out:json;responseHandler:callback" + this.id
         }, fields.length > 0 ? { tq: this._getQueryString(fields) } : null);
       }
     }, {
@@ -350,8 +350,13 @@ var financialVersion = "1.2.8";
           event: "ready"
         };
 
+        // ensure firebase app has not been initialized already
         if (!this._firebaseApp) {
-          this._firebaseApp = firebase.initializeApp(config.firebase);
+          if (!firebase.apps.length) {
+            this._firebaseApp = firebase.initializeApp(config.firebase);
+          } else {
+            this._firebaseApp = firebase.apps[0];
+          }
         }
 
         // listen for data ping received

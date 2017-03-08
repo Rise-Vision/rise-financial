@@ -289,7 +289,7 @@
           id: "preview",
           code: "AA.N",
           tq: "select lastPrice,netChange",
-          tqx: "out:json;responseHandler:callback",
+          tqx: "out:json;responseHandler:callbackrequest",
         };
 
         assert.deepEqual( financialRequest._getParams( [ inst1 ], fields ), expected );
@@ -299,7 +299,7 @@
         const expected = {
           id: "preview",
           code: "AA.N",
-          tqx: "out:json;responseHandler:callback",
+          tqx: "out:json;responseHandler:callbackrequest",
         };
 
         assert.deepEqual( financialRequest._getParams( [ inst1 ], [] ), expected );
@@ -357,7 +357,7 @@
           id: "preview",
           code: "AA.N",
           tq: "select lastPrice,netChange",
-          tqx: "out:json;responseHandler:callback",
+          tqx: "out:json;responseHandler:callbackrequest",
         };
 
         financialRequest._getData( props, [ inst1 ], fields );
@@ -370,7 +370,7 @@
           id: "preview",
           code: "AA.N|.DJI",
           tq: "select lastPrice,netChange",
-          tqx: "out:json;responseHandler:callback",
+          tqx: "out:json;responseHandler:callbackrequest",
         };
 
         financialRequest._getData( props, instruments, fields );
