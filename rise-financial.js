@@ -183,7 +183,7 @@ var financialVersion = "1.3.2";
     }, {
       key: "_getDataCacheKey",
       value: function _getDataCacheKey() {
-        return config.cache.baseKeyName + "_" + this.type + "_" + this.displayId + "_" + this.financialList;
+        return config.cache.baseKeyName + "_" + this.type + "_" + this.displayId + "_" + this.financialList + "_" + this.duration;
       }
 
       /***************************************** FIREBASE *******************************************/

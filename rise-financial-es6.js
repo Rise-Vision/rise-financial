@@ -145,7 +145,7 @@
     }
 
     _getDataCacheKey() {
-      return `${config.cache.baseKeyName}_${this.type}_${this.displayId}_${this.financialList}`;
+      return `${config.cache.baseKeyName}_${this.type}_${this.displayId}_${this.financialList}_${this.duration}`;
     }
 
     /***************************************** FIREBASE *******************************************/
