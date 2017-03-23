@@ -58,6 +58,13 @@
             name: "Alcoa",
             symbol: "AA.N",
             $id: "AA?N",
+          },
+          {
+            category: "Stocks",
+            index: 1,
+            name: "APPLE INC.",
+            symbol: "AAAPL.O",
+            $id: "AAPL?O",
           }
         ],
         props = {
@@ -91,11 +98,25 @@
       test( "should set 'params' attribute of JSONP component", () => {
         const expected = {
           id: "preview",
-          code: "AA.N",
+          code: "AA.N|AAAPL.O",
           tqx: "out:json;responseHandler:callbackrequest",
           kind: "1M",
         };
 
+        financialRequest._getData( props, instrument, [] );
+
+        assert.deepEqual( financial.params, expected );
+      } );
+
+      test( "should set 'params' attribute of JSONP component with only one symbol when symbol attribute is set on the component", () => {
+        const expected = {
+          id: "preview",
+          code: "AAAPL.O",
+          tqx: "out:json;responseHandler:callbackrequest",
+          kind: "1M",
+        };
+
+        financialRequest.setAttribute( "symbol", "AAAPL.O" );
         financialRequest._getData( props, instrument, [] );
 
         assert.deepEqual( financial.params, expected );

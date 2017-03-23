@@ -74,6 +74,14 @@
           type: String,
           readOnly: true,
           value: "preview"
+        },
+
+        /**
+         * A single instrument symbol to return data for
+         */
+        symbol: {
+          type: String,
+          value: ""
         }
 
       };
@@ -85,6 +93,7 @@
       this._instruments = [];
       this._refreshPending = false;
       this._initialGo = true;
+      this._invalidSymbol = false;
     }
 
     /***************************************** HELPERS ********************************************/
@@ -183,11 +192,13 @@
     /***************************************** FINANCIAL ******************************************/
 
     _getParams( instruments, fields ) {
+      let id = ( this.id ) ? this.id : "";
+
       return Object.assign( {},
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
-          tqx: "out:json;responseHandler:callback" + this.id,
+          tqx: "out:json;responseHandler:callback" + id,
         },
         fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
@@ -208,16 +219,19 @@
       const financial = this.$.financial,
         params = this._getParams( instruments, fields );
 
-      if ( props.type === "realtime" ) {
-        financial.url = config.financial.realTimeURL;
-      } else {
-        params.kind = props.duration;
-        financial.url = config.financial.historicalURL;
+      if ( !this._invalidSymbol ) {
+
+        if ( props.type === "realtime" ) {
+          financial.url = config.financial.realTimeURL;
+        } else {
+          params.kind = props.duration;
+          financial.url = config.financial.historicalURL;
+        }
+
+        financial.params = params;
+
+        financial.generateRequest();
       }
-
-      financial.params = params;
-
-      financial.generateRequest();
     }
 
     _saveToCache( data ) {
@@ -249,8 +263,17 @@
     }
 
     _handleData( e, resp ) {
+
+      let instruments = this._instruments;
+
+      if ( this.symbol && !this._invalidSymbol ) {
+        instruments = this._instruments.filter( ( obj ) => {
+          return obj.symbol === this.symbol;
+        } );
+      }
+
       const response = {
-        instruments: this._instruments,
+        instruments: instruments,
       };
 
       if ( resp && resp.table ) {
@@ -285,6 +308,16 @@
 
     _getSymbols( instruments ) {
       const symbols = instruments.map( ( { symbol } ) => symbol );
+
+      if ( this.symbol ) {
+        if ( symbols.indexOf( this.symbol ) != -1 ) {
+          return this.symbol;
+        } else {
+          this._invalidSymbol = true;
+          this.fire( "rise-financial-invalid-symbol" );
+          return "";
+        }
+      }
 
       return symbols.join( "|" );
     }

@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.3.2";
+var financialVersion = "1.4.0";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -101,6 +101,14 @@ var financialVersion = "1.3.2";
             type: String,
             readOnly: true,
             value: "preview"
+          },
+
+          /**
+           * A single instrument symbol to return data for
+           */
+          symbol: {
+            type: String,
+            value: ""
           }
 
         };
@@ -112,6 +120,7 @@ var financialVersion = "1.3.2";
         this._instruments = [];
         this._refreshPending = false;
         this._initialGo = true;
+        this._invalidSymbol = false;
       }
 
       /***************************************** HELPERS ********************************************/
@@ -227,10 +236,12 @@ var financialVersion = "1.3.2";
     }, {
       key: "_getParams",
       value: function _getParams(instruments, fields) {
+        var id = this.id ? this.id : "";
+
         return Object.assign({}, {
           id: this.displayId,
           code: this._getSymbols(instruments),
-          tqx: "out:json;responseHandler:callback" + this.id
+          tqx: "out:json;responseHandler:callback" + id
         }, fields.length > 0 ? { tq: this._getQueryString(fields) } : null);
       }
     }, {
@@ -252,16 +263,19 @@ var financialVersion = "1.3.2";
         var financial = this.$.financial,
             params = this._getParams(instruments, fields);
 
-        if (props.type === "realtime") {
-          financial.url = config.financial.realTimeURL;
-        } else {
-          params.kind = props.duration;
-          financial.url = config.financial.historicalURL;
+        if (!this._invalidSymbol) {
+
+          if (props.type === "realtime") {
+            financial.url = config.financial.realTimeURL;
+          } else {
+            params.kind = props.duration;
+            financial.url = config.financial.historicalURL;
+          }
+
+          financial.params = params;
+
+          financial.generateRequest();
         }
-
-        financial.params = params;
-
-        financial.generateRequest();
       }
     }, {
       key: "_saveToCache",
@@ -295,8 +309,18 @@ var financialVersion = "1.3.2";
     }, {
       key: "_handleData",
       value: function _handleData(e, resp) {
+        var _this2 = this;
+
+        var instruments = this._instruments;
+
+        if (this.symbol && !this._invalidSymbol) {
+          instruments = this._instruments.filter(function (obj) {
+            return obj.symbol === _this2.symbol;
+          });
+        }
+
         var response = {
-          instruments: this._instruments
+          instruments: instruments
         };
 
         if (resp && resp.table) {
@@ -311,7 +335,7 @@ var financialVersion = "1.3.2";
     }, {
       key: "_handleError",
       value: function _handleError() {
-        var _this2 = this;
+        var _this3 = this;
 
         // error response provides no request or error message, use instruments to provide some detail instead
         var params = {
@@ -323,9 +347,9 @@ var financialVersion = "1.3.2";
 
         this._getFromCache(function (cachedData) {
           if (cachedData) {
-            _this2.fire("rise-financial-response", cachedData);
+            _this3.fire("rise-financial-response", cachedData);
           } else {
-            _this2.fire("rise-financial-no-data");
+            _this3.fire("rise-financial-no-data");
           }
         });
 
@@ -339,12 +363,22 @@ var financialVersion = "1.3.2";
           return symbol;
         });
 
+        if (this.symbol) {
+          if (symbols.indexOf(this.symbol) != -1) {
+            return this.symbol;
+          } else {
+            this._invalidSymbol = true;
+            this.fire("rise-financial-invalid-symbol");
+            return "";
+          }
+        }
+
         return symbols.join("|");
       }
     }, {
       key: "ready",
       value: function ready() {
-        var _this3 = this;
+        var _this4 = this;
 
         var params = {
           event: "ready"
@@ -361,12 +395,12 @@ var financialVersion = "1.3.2";
 
         // listen for data ping received
         this.$.data.addEventListener("rise-data-ping-received", function (e) {
-          _this3._onDataPingReceived(e.detail);
+          _this4._onDataPingReceived(e.detail);
         });
 
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
-          _this3._onDisplayIdReceived(e.detail);
+          _this4._onDisplayIdReceived(e.detail);
         });
 
         this._log(params);
@@ -408,7 +442,7 @@ var financialVersion = "1.3.2";
     }, {
       key: "go",
       value: function go() {
-        var _this4 = this;
+        var _this5 = this;
 
         if (!this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived) {
           this._goPending = true;
@@ -433,12 +467,12 @@ var financialVersion = "1.3.2";
         // provide cached data (if available)
         this._getFromCache(function (cachedData) {
           if (!cachedData) {
-            _this4._getData({
-              type: _this4.type,
-              duration: _this4.duration
-            }, _this4._instruments, _this4.instrumentFields);
+            _this5._getData({
+              type: _this5.type,
+              duration: _this5.duration
+            }, _this5._instruments, _this5.instrumentFields);
           } else {
-            _this4.fire("rise-financial-response", cachedData);
+            _this5.fire("rise-financial-response", cachedData);
           }
         });
       }

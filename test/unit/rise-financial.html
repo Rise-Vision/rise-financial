@@ -337,6 +337,7 @@
 
       teardown( () => {
         financialRequest.$.financial.generateRequest.restore();
+        financialRequest.removeAttribute( "symbol" );
       } );
 
       test( "should not set attributes of JSONP component for an invalid type", () => {
@@ -378,6 +379,20 @@
         assert.deepEqual( financial.params, expected );
       } );
 
+      test( "should fire 'rise-financial-invalid-symbol' if symbol is invalid", ( done ) => {
+        const listener = () => {
+
+          assert.isTrue( true );
+          financialRequest.removeEventListener( "rise-financial-invalid-symbol", listener );
+          done();
+        };
+
+        financialRequest.setAttribute( "symbol", ".YYY" );
+        financialRequest.addEventListener( "rise-financial-invalid-symbol", listener );
+        financialRequest._getData( props, instruments, fields );
+
+      } );
+
     } );
 
     suite( "_handleData", () => {
@@ -389,6 +404,7 @@
 
       teardown( () => {
         financialRequest._instruments = [];
+        financialRequest.removeAttribute( "symbol" );
       } );
 
       test( "should pass instruments and data in 'rise-financial-response' event", ( done ) => {
@@ -402,6 +418,23 @@
           done();
         };
 
+        financialRequest.addEventListener( "rise-financial-response", listener );
+        financialRequest._handleData( e, realTimeData );
+      } );
+
+      test( "should pass instruments and data in 'rise-financial-response' event for a single instrument when symbol is set", ( done ) => {
+        const listener = ( response ) => {
+          assert.deepEqual( response.detail, {
+            instruments: [ inst2 ],
+            data: realTimeData.table,
+          } );
+
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+          done();
+        };
+
+        financialRequest.setAttribute( "symbol", ".DJI" );
+        financialRequest._invalidSymbol = false;
         financialRequest.addEventListener( "rise-financial-response", listener );
         financialRequest._handleData( e, realTimeData );
       } );
@@ -505,12 +538,21 @@
 
     suite( "_getSymbols", () => {
 
+      teardown( () => {
+        financialRequest.setAttribute( "symbol", "" );
+      } );
+
       test( "should return empty string if no instruments", () => {
         assert.equal( financialRequest._getSymbols( [] ), "" );
       } );
 
       test( "should return string of instrument symbols separated by |", () => {
         assert.equal( financialRequest._getSymbols( instruments ), "AA.N|.DJI" );
+      } );
+
+      test( "should return only the single symbol if the symbol attribute is set and it is within the list of instruments", () => {
+        financialRequest.setAttribute( "symbol", ".DJI" );
+        assert.equal( financialRequest._getSymbols( instruments ), ".DJI" );
       } );
 
     } );
