@@ -71,6 +71,8 @@ Valid values for the `instrument-fields` attribute for historical data are: `acc
 
 If no `instrument-fields` attribute is provided, all fields are returned by default.
 
+In case the list of instruments contains more than one instrument an attribute `symbol` can be set to specify which instrument from the list the historical data needs to be retrieved.
+
 #### Example
 
 ```
@@ -78,7 +80,8 @@ If no `instrument-fields` attribute is provided, all fields are returned by defa
   duration="1M"
   financial-list="my-list"
   instrument-fields='["closePrice", "percentChange"]'
-  type="historical">
+  type="historical"
+  symbol="AAPL.O">
 </rise-financial>
 ```
 
