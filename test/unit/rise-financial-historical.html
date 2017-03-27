@@ -92,7 +92,7 @@
       test( "should set 'url' attribute of JSONP component", () => {
         financialRequest._getData( props, instrument, [] );
 
-        assert.equal( financial.url, "//contentfinancial2-test.appspot.com/data/historical" );
+        assert.equal( financial.url, "https://contentfinancial2-test.appspot.com/data/historical" );
       } );
 
       test( "should set 'params' attribute of JSONP component", () => {
