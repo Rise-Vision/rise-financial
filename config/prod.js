@@ -8,7 +8,7 @@ const config = {
     databaseURL: "https://fir-b3915.firebaseio.com",
   },
   financial: {
-    realTimeURL: "//contentfinancial2.appspot.com/data",
-    historicalURL: "//contentfinancial2.appspot.com/data/historical",
+    realTimeURL: "https://contentfinancial2.appspot.com/data",
+    historicalURL: "https://contentfinancial2.appspot.com/data/historical",
   }
 };

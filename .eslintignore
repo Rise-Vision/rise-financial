@@ -1,5 +1,6 @@
 bower_components/**
 node_modules/**
+firebasejs/**
 wct.conf.js
 rise-financial-version.js
 rise-financial.js

@@ -14,12 +14,12 @@ var config = {
     databaseURL: "https://fir-b3915.firebaseio.com"
   },
   financial: {
-    realTimeURL: "//contentfinancial2.appspot.com/data",
-    historicalURL: "//contentfinancial2.appspot.com/data/historical"
+    realTimeURL: "https://contentfinancial2.appspot.com/data",
+    historicalURL: "https://contentfinancial2.appspot.com/data/historical"
   }
 };
 
-var financialVersion = "1.4.0";
+var financialVersion = "2.0.0";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
