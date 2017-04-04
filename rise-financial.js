@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.0";
+var financialVersion = "2.0.1";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -192,7 +192,7 @@ var financialVersion = "2.0.0";
     }, {
       key: "_getDataCacheKey",
       value: function _getDataCacheKey() {
-        return config.cache.baseKeyName + "_" + this.type + "_" + this.displayId + "_" + this.financialList + "_" + this.duration;
+        return config.cache.baseKeyName + "_" + this.type + "_" + this.displayId + "_" + this.financialList + "_" + this.duration + "_" + this.symbol;
       }
 
       /***************************************** FIREBASE *******************************************/
