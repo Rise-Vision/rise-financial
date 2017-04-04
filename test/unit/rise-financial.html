@@ -210,7 +210,14 @@
     suite( "_getDataCacheKey", () => {
 
       test( "should return correct data cache key", () => {
-        assert.equal( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M" );
+        assert.equal( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M_" );
+      } );
+
+
+      test( "should return correct data cache key", () => {
+        financialRequest.setAttribute( "symbol", ".YYY" );
+        assert.equal( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M_.YYY" );
+        financialRequest.setAttribute( "symbol", "" );
       } );
 
     } );
