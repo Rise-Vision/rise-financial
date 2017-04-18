@@ -23,6 +23,7 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
   </head>
   <body>
     <rise-financial
+      id="myListID"
       financial-list="my-list"
       instrument-fields='["instrument", "name", "lastPrice", "netChange"]'>
     </rise-financial>
@@ -35,7 +36,7 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
         financial.addEventListener( "rise-financial-response", ( e ) => {
           console.log( e.detail );
         } );
-        
+
         financial.addEventListener( "rise-financial-no-data", ( e ) => {
           console.log( "No data available" );
         } );
@@ -51,7 +52,7 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
 ### Realtime Data
 To request realtime data, the `type` attribute can either be left off or it can be set to `realtime`.
 
-Valid values for the `instrument-fields` attribute for realtime data are: `accumulatedVolume`, `ask`, `bid`, `code`, `dayHigh`, `dayLow`, `daysOfWeek`, `endTime`, `historicClose`, `instrument`, `lastPrice`, `name`, `netChange`, `percentChange`, `startTime`, `timeZone`, `timeZoneOffset`, `tradeTime`, `updateInterval`, `yearHigh`, `yearLow`, `yield` and `yieldChange`.
+Valid values for the `instrument-fields` attribute for realtime data are: `accumulatedVolume`, `ask`, `bid`, `code`, `dayHigh`, `dayLow`, `daysOfWeek`, `endTime`, `historicClose`, `instrument`, `lastPrice`, `name`, `netChange`, `percentChange`, `startTime`, `timeZone`, `timeZoneOffset`, `tradeTime`, `updateInterval`, `yearHigh`, `yearLow`, `yield` `logoURL` and `yieldChange`.
 
 If no `instrument-fields` attribute is provided, all fields are returned by default.
 
@@ -77,6 +78,7 @@ In case the list of instruments contains more than one instrument an attribute `
 
 ```
 <rise-financial
+  id = "myHistoricalID"
   duration="1M"
   financial-list="my-list"
   instrument-fields='["closePrice", "percentChange"]'
