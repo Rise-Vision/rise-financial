@@ -206,6 +206,7 @@ var financialVersion = "2.0.1";
 
         this._instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
         this._handleInstruments = this._handleInstruments.bind(this);
+
         this._instrumentsRef.on("value", this._handleInstruments);
       }
     }, {
@@ -348,6 +349,16 @@ var financialVersion = "2.0.1";
         this._getFromCache(function (cachedData) {
           if (cachedData) {
             _this3.fire("rise-financial-response", cachedData);
+          } else if (!_this3.firebaseConnected) {
+            try {
+              var savedInstruments = JSON.parse(localStorage.getItem("risefinancial_" + _this3.financialList));
+
+              _this3.fire("rise-financial-response", {
+                instruments: savedInstruments
+              });
+            } catch (e) {
+              _this3.fire("rise-financial-no-data");
+            }
           } else {
             _this3.fire("rise-financial-no-data");
           }
@@ -382,7 +393,8 @@ var financialVersion = "2.0.1";
 
         var params = {
           event: "ready"
-        };
+        },
+            connectedRef = void 0;
 
         // ensure firebase app has not been initialized already
         if (!this._firebaseApp) {
@@ -392,6 +404,11 @@ var financialVersion = "2.0.1";
             this._firebaseApp = firebase.apps[0];
           }
         }
+
+        connectedRef = firebase.database().ref(".info/connected");
+        connectedRef.on("value", function onConnectionStateChanged(snap) {
+          this.firebaseConnected = snap.val();
+        }.bind(this));
 
         // listen for data ping received
         this.$.data.addEventListener("rise-data-ping-received", function (e) {
