@@ -166,6 +166,7 @@
 
       this._instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
       this._handleInstruments = this._handleInstruments.bind( this );
+
       this._instrumentsRef.on( "value", this._handleInstruments );
     }
 
@@ -298,6 +299,18 @@
       this._getFromCache( ( cachedData ) => {
         if ( cachedData ) {
           this.fire( "rise-financial-response", cachedData );
+        } else if ( !this.firebaseConnected ) {
+          try {
+            const savedInstruments = JSON.parse(
+              localStorage.getItem( `risefinancial_${ this.financialList }` )
+            );
+
+            this.fire( "rise-financial-response", {
+              instruments: savedInstruments
+            } );
+          } catch ( e ) {
+            this.fire( "rise-financial-no-data" );
+          }
         } else {
           this.fire( "rise-financial-no-data" );
         }
@@ -324,8 +337,9 @@
 
     ready() {
       let params = {
-        event: "ready"
-      };
+          event: "ready"
+        },
+        connectedRef;
 
       // ensure firebase app has not been initialized already
       if ( !this._firebaseApp ) {
@@ -335,6 +349,11 @@
           this._firebaseApp = firebase.apps[ 0 ];
         }
       }
+
+      connectedRef = firebase.database().ref( ".info/connected" );
+      connectedRef.on( "value", ( function onConnectionStateChanged( snap ) {
+        this.firebaseConnected = snap.val();
+      } ).bind( this ) );
 
       // listen for data ping received
       this.$.data.addEventListener( "rise-data-ping-received", ( e ) => {
