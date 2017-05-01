@@ -121,6 +121,7 @@ var financialVersion = "2.0.1";
         this._refreshPending = false;
         this._initialGo = true;
         this._invalidSymbol = false;
+        this._firebaseConnected = true;
       }
 
       /***************************************** HELPERS ********************************************/
@@ -349,7 +350,7 @@ var financialVersion = "2.0.1";
         this._getFromCache(function (cachedData) {
           if (cachedData) {
             _this3.fire("rise-financial-response", cachedData);
-          } else if (!_this3.firebaseConnected) {
+          } else if (!_this3._firebaseConnected) {
             try {
               var savedInstruments = JSON.parse(localStorage.getItem("risefinancial_" + _this3.financialList));
 
@@ -407,7 +408,7 @@ var financialVersion = "2.0.1";
 
         connectedRef = firebase.database().ref(".info/connected");
         connectedRef.on("value", function onConnectionStateChanged(snap) {
-          this.firebaseConnected = snap.val();
+          this._firebaseConnected = snap.val();
         }.bind(this));
 
         // listen for data ping received

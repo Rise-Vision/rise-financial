@@ -3,3 +3,4 @@ bower_components/
 config/config.js
 rise-financial-version.js
 .yo-rc.json
+*.log
