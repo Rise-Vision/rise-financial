@@ -352,7 +352,7 @@
       }
 
       connectedRef = firebase.database().ref( ".info/connected" );
-      connectedRef.on( "value", ( function onConnectionStateChanged( snap ) {
+      connectedRef.on( "value", ( ( snap ) => {
         this._firebaseConnected = snap.val();
       } ).bind( this ) );
 
