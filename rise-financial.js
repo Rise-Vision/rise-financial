@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.1";
+var financialVersion = "2.0.2";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -407,8 +407,8 @@ var financialVersion = "2.0.1";
         }
 
         connectedRef = firebase.database().ref(".info/connected");
-        connectedRef.on("value", function onConnectionStateChanged(snap) {
-          this._firebaseConnected = snap.val();
+        connectedRef.on("value", function (snap) {
+          _this4._firebaseConnected = snap.val();
         }.bind(this));
 
         // listen for data ping received
