@@ -94,6 +94,7 @@
       this._refreshPending = false;
       this._initialGo = true;
       this._invalidSymbol = false;
+      this._firebaseConnected = true;
     }
 
     /***************************************** HELPERS ********************************************/
@@ -299,7 +300,7 @@
       this._getFromCache( ( cachedData ) => {
         if ( cachedData ) {
           this.fire( "rise-financial-response", cachedData );
-        } else if ( !this.firebaseConnected ) {
+        } else if ( !this._firebaseConnected ) {
           try {
             const savedInstruments = JSON.parse(
               localStorage.getItem( `risefinancial_${ this.financialList }` )
@@ -352,7 +353,7 @@
 
       connectedRef = firebase.database().ref( ".info/connected" );
       connectedRef.on( "value", ( function onConnectionStateChanged( snap ) {
-        this.firebaseConnected = snap.val();
+        this._firebaseConnected = snap.val();
       } ).bind( this ) );
 
       // listen for data ping received
