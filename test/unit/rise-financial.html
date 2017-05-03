@@ -22,7 +22,7 @@
 
 <script>
 
-  /* global sinon, suite, test, assert, suiteSetup, suiteTeardown, setup, teardown, realTimeData */
+  /* global sinon, suite, test, assert, suiteSetup, suiteTeardown, setup, teardown, realTimeData setFirebaseConnectionStatus */
 
   const financialRequest = document.querySelector( "#request" ),
     fields = [ "lastPrice", "netChange" ],
@@ -486,10 +486,12 @@
           instruments[ i ].$id = instruments[ i ].id;
           delete instruments[ i ].id;
         }
+        setFirebaseConnectionStatus( true );
       } );
 
       teardown( () => {
         logStub.restore();
+        setFirebaseConnectionStatus( true );
       } );
 
       test( "should fire rise-financial-response when cached data exists", ( done ) => {
@@ -500,6 +502,7 @@
           } );
 
           financialRequest.removeEventListener( "rise-financial-response", listener );
+          financialRequest.removeEventListener( "rise-financial-no-data", listener );
           financialRequest.$.data.getItem.restore();
 
           done();
@@ -518,6 +521,7 @@
 
       test( "should fire rise-financial-no-data when cached data doesn't exist", ( done ) => {
         let listener = () => {
+          financialRequest.removeEventListener( "rise-financial-response", listener );
           financialRequest.removeEventListener( "rise-financial-no-data", listener );
           financialRequest.$.data.getItem.restore();
 
@@ -541,6 +545,49 @@
         } ) );
       } );
 
+      const MSFT = {
+        category: "Stocks",
+        index: 0,
+        name: "Microsoft",
+        symbol: "MSFT",
+        $id: "MSFT",
+      };
+
+      test( "should respond with localStorage data if offline", ( done ) => {
+        // simulate firebase offline
+        setFirebaseConnectionStatus( false );
+        localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
+        localStorage.setItem(
+          `risefinancial_${financialRequest.financialList}`,
+          JSON.stringify( [ MSFT ] )
+        );
+
+        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
+          return cb( null );
+        } );
+
+        const listener = ( response ) => {
+          assert.deepEqual(
+            response.detail.instruments,
+            [ MSFT ]
+          );
+
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+          localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
+          financialRequest.$.data.getItem.restore();
+          setFirebaseConnectionStatus( true );
+
+          done();
+        };
+
+        financialRequest._displayIdReceived = true;
+        financialRequest._instrumentsReceived = true;
+        financialRequest._dataPingReceived = true;
+        financialRequest._initialGo = false;
+        financialRequest._refreshPending = false;
+        financialRequest.addEventListener( "rise-financial-response", listener );
+        financialRequest._handleError();
+      } );
     } );
 
     suite( "_getSymbols", () => {
