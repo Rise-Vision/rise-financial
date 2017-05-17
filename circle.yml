@@ -1,4 +1,6 @@
 machine:
+  node:
+    version: 6.9.1
   environment:
     YARN_VERSION: 0.17.8
     PATH: "${PATH}:${HOME}/.yarn/bin"
