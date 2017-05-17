@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.2";
+var financialVersion = "2.0.3";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -243,7 +243,7 @@ var financialVersion = "2.0.2";
         return Object.assign({}, {
           id: this.displayId,
           code: this._getSymbols(instruments),
-          tqx: "out:json;responseHandler:callback" + id
+          tqx: "out:json;responseHandler:" + btoa(id + this._getDataCacheKey()).substr(0, 10)
         }, fields.length > 0 ? { tq: this._getQueryString(fields) } : null);
       }
     }, {
@@ -275,6 +275,8 @@ var financialVersion = "2.0.2";
           }
 
           financial.params = params;
+          // set callback with the same value it was set on the responseHandler of the tqx parameter
+          financial.callbackValue = btoa((this.id ? this.id : "") + this._getDataCacheKey()).substr(0, 10);
 
           financial.generateRequest();
         }
