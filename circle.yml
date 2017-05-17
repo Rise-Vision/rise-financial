@@ -17,6 +17,7 @@ dependencies:
     - sudo sed -i 's|HERE/chrome\"|HERE/chrome\" --disable-setuid-sandbox|g' /opt/google/chrome/google-chrome
     - rm google-chrome-stable.deb
     - yarn global add gulp
+    - yarn global add bower
     - yarn global add web-component-tester
   post:
     - bower install
