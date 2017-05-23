@@ -37,7 +37,8 @@
          */
         duration: {
           type: String,
-          value: "1M"
+          value: "1M",
+          observer: "_durationChanged"
         },
 
         /**
@@ -386,6 +387,14 @@
       }
 
       this._getInstruments();
+    }
+
+    _durationChanged() {
+      if ( !this._initialGo ) {
+        this.cancelDebouncer( "refresh" );
+        // make sure cached data isn't provided
+        this._refreshPending = true;
+      }
     }
 
     attached() {

@@ -64,7 +64,8 @@ var financialVersion = "2.0.3";
            */
           duration: {
             type: String,
-            value: "1M"
+            value: "1M",
+            observer: "_durationChanged"
           },
 
           /**
@@ -442,6 +443,15 @@ var financialVersion = "2.0.3";
         }
 
         this._getInstruments();
+      }
+    }, {
+      key: "_durationChanged",
+      value: function _durationChanged() {
+        if (!this._initialGo) {
+          this.cancelDebouncer("refresh");
+          // make sure cached data isn't provided
+          this._refreshPending = true;
+        }
       }
     }, {
       key: "attached",
