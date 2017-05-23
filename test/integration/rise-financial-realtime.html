@@ -69,6 +69,17 @@
 
     } );
 
+    suite( "duration change", () => {
+
+      test( "should call _durationChanged()", () => {
+        let changedStub = sinon.stub( financialRequest, "_durationChanged" );
+
+        financialRequest.setAttribute( "duration", "5Y" );
+        assert.isTrue( changedStub.calledOnce );
+        changedStub.restore();
+      } );
+    } );
+
   } );
 </script>
 </body>

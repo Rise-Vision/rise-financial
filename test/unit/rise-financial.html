@@ -665,6 +665,26 @@
 
     } );
 
+    suite( "_durationChanged", () => {
+
+      teardown( () => {
+        financialRequest._refreshPending = false;
+      } );
+
+      test( "should cancel refresh timer and flag refresh is pending if go() call has executed before", () => {
+        let cancelStub = sinon.stub( financialRequest, "cancelDebouncer" );
+
+        financialRequest._refreshPending = false;
+        financialRequest._initialGo = false;
+
+        financialRequest._durationChanged();
+
+        assert.isTrue( financialRequest._refreshPending );
+        cancelStub.restore();
+
+      } );
+    } );
+
     suite( "ready", () => {
       let logStub;
 
