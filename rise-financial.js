@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.4";
+var financialVersion = "2.0.5";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
