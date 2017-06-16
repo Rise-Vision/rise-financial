@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.6";
+var financialVersion = "2.0.7";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -121,7 +121,7 @@ var financialVersion = "2.0.6";
         this._refreshPending = false;
         this._initialGo = true;
         this._invalidSymbol = false;
-        this._firebaseConnected = true;
+        this._firebaseConnected = undefined;
       }
 
       /***************************************** HELPERS ********************************************/
@@ -199,16 +199,45 @@ var financialVersion = "2.0.6";
       /***************************************** FIREBASE *******************************************/
 
     }, {
+      key: "_getInstrumentsFromLocalStorage",
+      value: function _getInstrumentsFromLocalStorage(key, cb) {
+        var instruments = null;
+
+        try {
+          instruments = JSON.parse(localStorage.getItem(key));
+        } catch (e) {
+          console.warn(e.message);
+        }
+
+        cb(instruments);
+      }
+    }, {
       key: "_getInstruments",
       value: function _getInstruments() {
-        if (!this.financialList) {
+        var _this2 = this;
+
+        if (!this.financialList || this._firebaseConnected === undefined) {
           return;
         }
 
-        this._instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
-        this._handleInstruments = this._handleInstruments.bind(this);
+        if (this._firebaseConnected) {
+          this._instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
+          this._handleInstruments = this._handleInstruments.bind(this);
 
-        this._instrumentsRef.on("value", this._handleInstruments);
+          this._instrumentsRef.on("value", this._handleInstruments);
+        } else {
+          this._getInstrumentsFromLocalStorage("risefinancial_" + this.financialList, function (instruments) {
+            if (instruments) {
+              _this2._instrumentsReceived = true;
+
+              if (_this2._goPending) {
+                _this2.go();
+              }
+            } else {
+              _this2.fire("rise-financial-no-data");
+            }
+          });
+        }
       }
     }, {
       key: "_handleInstruments",
@@ -313,13 +342,13 @@ var financialVersion = "2.0.6";
     }, {
       key: "_handleData",
       value: function _handleData(e, resp) {
-        var _this2 = this;
+        var _this3 = this;
 
         var instruments = this._instruments;
 
         if (this.symbol && !this._invalidSymbol) {
           instruments = this._instruments.filter(function (obj) {
-            return obj.symbol === _this2.symbol;
+            return obj.symbol === _this3.symbol;
           });
         }
 
@@ -339,7 +368,7 @@ var financialVersion = "2.0.6";
     }, {
       key: "_handleError",
       value: function _handleError() {
-        var _this3 = this;
+        var _this4 = this;
 
         // error response provides no request or error message, use instruments to provide some detail instead
         var params = {
@@ -351,19 +380,19 @@ var financialVersion = "2.0.6";
 
         this._getFromCache(function (cachedData) {
           if (cachedData) {
-            _this3.fire("rise-financial-response", cachedData);
-          } else if (!_this3._firebaseConnected) {
+            _this4.fire("rise-financial-response", cachedData);
+          } else if (!_this4._firebaseConnected) {
             try {
-              var savedInstruments = JSON.parse(localStorage.getItem("risefinancial_" + _this3.financialList));
+              var savedInstruments = JSON.parse(localStorage.getItem("risefinancial_" + _this4.financialList));
 
-              _this3.fire("rise-financial-response", {
+              _this4.fire("rise-financial-response", {
                 instruments: savedInstruments
               });
             } catch (e) {
-              _this3.fire("rise-financial-no-data");
+              _this4.fire("rise-financial-no-data");
             }
           } else {
-            _this3.fire("rise-financial-no-data");
+            _this4.fire("rise-financial-no-data");
           }
         });
 
@@ -392,12 +421,11 @@ var financialVersion = "2.0.6";
     }, {
       key: "ready",
       value: function ready() {
-        var _this4 = this;
+        var _this5 = this;
 
         var params = {
           event: "ready"
-        },
-            connectedRef = void 0;
+        };
 
         // ensure firebase app has not been initialized already
         if (!this._firebaseApp) {
@@ -408,19 +436,14 @@ var financialVersion = "2.0.6";
           }
         }
 
-        connectedRef = firebase.database().ref(".info/connected");
-        connectedRef.on("value", function (snap) {
-          _this4._firebaseConnected = snap.val();
-        }.bind(this));
-
         // listen for data ping received
         this.$.data.addEventListener("rise-data-ping-received", function (e) {
-          _this4._onDataPingReceived(e.detail);
+          _this5._onDataPingReceived(e.detail);
         });
 
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
-          _this4._onDisplayIdReceived(e.detail);
+          _this5._onDisplayIdReceived(e.detail);
         });
 
         this._log(params);
@@ -446,7 +469,17 @@ var financialVersion = "2.0.6";
     }, {
       key: "attached",
       value: function attached() {
-        this._getInstruments();
+        var _this6 = this;
+
+        var connectedRef = firebase.database().ref(".info/connected");
+
+        connectedRef.on("value", function (snap) {
+          _this6._firebaseConnected = snap.val();
+
+          if (!_this6._instrumentsReceived) {
+            _this6._getInstruments();
+          }
+        }.bind(this));
       }
     }, {
       key: "detached",
@@ -462,7 +495,7 @@ var financialVersion = "2.0.6";
     }, {
       key: "go",
       value: function go() {
-        var _this5 = this;
+        var _this7 = this;
 
         if (!this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived) {
           this._goPending = true;
@@ -487,12 +520,12 @@ var financialVersion = "2.0.6";
         // provide cached data (if available)
         this._getFromCache(function (cachedData) {
           if (!cachedData) {
-            _this5._getData({
-              type: _this5.type,
-              duration: _this5.duration
-            }, _this5._instruments, _this5.instrumentFields);
+            _this7._getData({
+              type: _this7.type,
+              duration: _this7.duration
+            }, _this7._instruments, _this7.instrumentFields);
           } else {
-            _this5.fire("rise-financial-response", cachedData);
+            _this7.fire("rise-financial-response", cachedData);
           }
         });
       }
