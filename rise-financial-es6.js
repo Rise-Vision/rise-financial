@@ -94,7 +94,7 @@
       this._refreshPending = false;
       this._initialGo = true;
       this._invalidSymbol = false;
-      this._firebaseConnected = true;
+      this._firebaseConnected = undefined;
     }
 
     /***************************************** HELPERS ********************************************/
@@ -160,15 +160,41 @@
 
     /***************************************** FIREBASE *******************************************/
 
+    _getInstrumentsFromLocalStorage( key, cb ) {
+      var instruments = null;
+
+      try {
+        instruments = JSON.parse( localStorage.getItem( key ) );
+      } catch ( e ) {
+        console.warn( e.message );
+      }
+
+      cb( instruments );
+    }
+
     _getInstruments() {
-      if ( !this.financialList ) {
+      if ( !this.financialList || this._firebaseConnected === undefined ) {
         return;
       }
 
-      this._instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
-      this._handleInstruments = this._handleInstruments.bind( this );
+      if ( this._firebaseConnected ) {
+        this._instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
+        this._handleInstruments = this._handleInstruments.bind( this );
 
-      this._instrumentsRef.on( "value", this._handleInstruments );
+        this._instrumentsRef.on( "value", this._handleInstruments );
+      } else {
+        this._getInstrumentsFromLocalStorage( `risefinancial_${ this.financialList }`, ( instruments ) => {
+          if ( instruments ) {
+            this._instrumentsReceived = true;
+
+            if ( this._goPending ) {
+              this.go();
+            }
+          } else {
+            this.fire( "rise-financial-no-data" );
+          }
+        } );
+      }
     }
 
     _handleInstruments( snapshot ) {
@@ -340,9 +366,8 @@
 
     ready() {
       let params = {
-          event: "ready"
-        },
-        connectedRef;
+        event: "ready"
+      };
 
       // ensure firebase app has not been initialized already
       if ( !this._firebaseApp ) {
@@ -352,11 +377,6 @@
           this._firebaseApp = firebase.apps[ 0 ];
         }
       }
-
-      connectedRef = firebase.database().ref( ".info/connected" );
-      connectedRef.on( "value", ( ( snap ) => {
-        this._firebaseConnected = snap.val();
-      } ).bind( this ) );
 
       // listen for data ping received
       this.$.data.addEventListener( "rise-data-ping-received", ( e ) => {
@@ -389,7 +409,15 @@
     }
 
     attached() {
-      this._getInstruments();
+      let connectedRef = firebase.database().ref( ".info/connected" );
+
+      connectedRef.on( "value", ( ( snap ) => {
+        this._firebaseConnected = snap.val();
+
+        if ( !this._instrumentsReceived ) {
+          this._getInstruments();
+        }
+      } ).bind( this ) );
     }
 
     detached() {
