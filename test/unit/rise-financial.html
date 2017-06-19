@@ -222,6 +222,29 @@
 
     } );
 
+    suite( "_getInstrumentsFromLocalStorage", () => {
+      setup( () => {
+        localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
+        localStorage.setItem(
+          `risefinancial_${financialRequest.financialList}`,
+          JSON.stringify( instruments )
+        );
+      } );
+
+      teardown( () => {
+        localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
+      } );
+
+      test( "should provide instruments from local storage", () => {
+        let spy = sinon.spy();
+
+        financialRequest._getInstrumentsFromLocalStorage( `risefinancial_${financialRequest.financialList}`, spy );
+
+        assert.isTrue( spy.calledWith( instruments ) );
+      } );
+
+    } );
+
     suite( "_getInstruments", () => {
       let spy;
 
@@ -239,6 +262,43 @@
         assert( spy.calledOnce );
       } );
 
+      test( "should get instruments from local storage if firebase not connected", () => {
+        let localStub = sinon.stub( financialRequest, "_getInstrumentsFromLocalStorage", ( key, cb ) => {
+          return cb( instruments );
+        } );
+
+        financialRequest._instrumentsReceived = false;
+        financialRequest._firebaseConnected = false;
+
+        financialRequest._getInstruments();
+
+        assert.isTrue( localStub.calledOnce );
+        assert.isTrue( financialRequest._instrumentsReceived );
+
+        financialRequest._getInstrumentsFromLocalStorage.restore();
+        financialRequest._firebaseConnected = true;
+      } );
+
+      test( "should fire 'rise-financial-no-data' if firebase not connected and localStorage empty", ( done ) => {
+        let listener = () => {
+          financialRequest._getInstrumentsFromLocalStorage.restore();
+          financialRequest._firebaseConnected = true;
+          financialRequest._instrumentsReceived = true;
+          financialRequest.removeEventListener( "rise-financial-no-data", listener );
+          done();
+        };
+
+        sinon.stub( financialRequest, "_getInstrumentsFromLocalStorage", ( key, cb ) => {
+          return cb( null );
+        } );
+
+        financialRequest._instrumentsReceived = false;
+        financialRequest._firebaseConnected = false;
+
+        financialRequest.addEventListener( "rise-financial-no-data", listener );
+        financialRequest._getInstruments();
+      } );
+
       test( "should not call _handleInstruments if no financialList attribute", () => {
         financialRequest.financialList = "";
         financialRequest._getInstruments();
@@ -246,6 +306,15 @@
         assert.equal( spy.callCount, 0 );
 
         financialRequest.financialList = "Stocks";
+      } );
+
+      test( "should not call _handleInstruments if firebase connection status not determined", () => {
+        financialRequest._firebaseConnected = undefined;
+        financialRequest._getInstruments();
+
+        assert.equal( spy.callCount, 0 );
+
+        financialRequest._firebaseConnected = true;
       } );
 
     } );
@@ -661,6 +730,38 @@
         financialRequest._financialListChanged();
 
         assert.isTrue( instrumentsStub.calledOnce );
+      } );
+
+    } );
+
+    suite( "attached", () => {
+      let stub;
+
+      setup( () => {
+        stub = sinon.stub( financialRequest, "_getInstruments" );
+      } );
+
+      teardown( () => {
+        financialRequest._getInstruments.restore();
+      } );
+
+      test( "should set firebase connected status and call '_getInstruments()' when still needing instruments", () => {
+        financialRequest._instrumentsReceived = false;
+        setFirebaseConnectionStatus( true );
+
+        assert.isTrue( stub.calledOnce );
+        assert.isTrue( financialRequest._firebaseConnected );
+
+        financialRequest._instrumentsReceived = true;
+      } );
+
+      test( "should not call '_getInstruments()' if instruments already received", () => {
+        setFirebaseConnectionStatus( false );
+
+        assert.equal( stub.callCount, 0 );
+        assert.isFalse( financialRequest._firebaseConnected );
+
+        financialRequest._firebaseConnected = true;
       } );
 
     } );
