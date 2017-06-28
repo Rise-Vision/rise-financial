@@ -734,7 +734,7 @@
 
     } );
 
-    suite( "attached", () => {
+    suite( "_handleConnected", () => {
       let stub;
 
       setup( () => {
@@ -756,9 +756,19 @@
       } );
 
       test( "should not call '_getInstruments()' if instruments already received", () => {
-        setFirebaseConnectionStatus( false );
+        setFirebaseConnectionStatus( true );
 
         assert.equal( stub.callCount, 0 );
+        assert.isTrue( financialRequest._firebaseConnected );
+      } );
+
+      test( "should call '_getInstruments()' if no connection within 2 seconds and still needing instruments", () => {
+        financialRequest._instrumentsReceived = false;
+        setFirebaseConnectionStatus( false );
+
+        clock.tick( 2000 );
+
+        assert.isTrue( stub.calledOnce );
         assert.isFalse( financialRequest._firebaseConnected );
 
         financialRequest._firebaseConnected = true;
