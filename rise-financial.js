@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.9";
+var financialVersion = "2.0.10";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -467,24 +467,38 @@ var financialVersion = "2.0.9";
         this._getInstruments();
       }
     }, {
-      key: "attached",
-      value: function attached() {
+      key: "_handleConnected",
+      value: function _handleConnected(snapshot) {
         var _this6 = this;
 
-        var connectedRef = firebase.database().ref(".info/connected");
+        this._firebaseConnected = snapshot.val();
 
-        connectedRef.on("value", function (snap) {
-          _this6._firebaseConnected = snap.val();
-
-          if (!_this6._instrumentsReceived) {
-            _this6._getInstruments();
+        if (!this._instrumentsReceived) {
+          if (!this._firebaseConnected) {
+            // account for multiple "false" values being initially returned even though network status is online
+            if (!this.isDebouncerActive("connected")) {
+              this.debounce("connected", function () {
+                _this6._getInstruments();
+              }, 2000);
+            }
+          } else {
+            this.cancelDebouncer("connected");
+            this._getInstruments();
           }
-        }.bind(this));
+        }
+      }
+    }, {
+      key: "attached",
+      value: function attached() {
+        this._connectedRef = firebase.database().ref(".info/connected");
+        this._handleConnected = this._handleConnected.bind(this);
+        this._connectedRef.on("value", this._handleConnected);
       }
     }, {
       key: "detached",
       value: function detached() {
         this._instrumentsRef.off("value", this._handleInstruments);
+        this._connectedRef.off("value", this._handleConnected);
       }
 
       /**

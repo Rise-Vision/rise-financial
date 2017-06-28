@@ -408,20 +408,33 @@
       this._getInstruments();
     }
 
-    attached() {
-      let connectedRef = firebase.database().ref( ".info/connected" );
+    _handleConnected( snapshot ) {
+      this._firebaseConnected = snapshot.val();
 
-      connectedRef.on( "value", ( ( snap ) => {
-        this._firebaseConnected = snap.val();
-
-        if ( !this._instrumentsReceived ) {
+      if ( !this._instrumentsReceived ) {
+        if ( !this._firebaseConnected ) {
+          // account for multiple "false" values being initially returned even though network status is online
+          if ( !this.isDebouncerActive( "connected" ) ) {
+            this.debounce( "connected", () => {
+              this._getInstruments();
+            }, 2000 );
+          }
+        } else {
+          this.cancelDebouncer( "connected" );
           this._getInstruments();
         }
-      } ).bind( this ) );
+      }
+    }
+
+    attached() {
+      this._connectedRef = firebase.database().ref( ".info/connected" );
+      this._handleConnected = this._handleConnected.bind( this );
+      this._connectedRef.on( "value", this._handleConnected );
     }
 
     detached() {
       this._instrumentsRef.off( "value", this._handleInstruments );
+      this._connectedRef.off( "value", this._handleConnected );
     }
 
     /**
