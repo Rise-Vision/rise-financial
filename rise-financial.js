@@ -174,6 +174,8 @@ var financialVersion = "2.0.12";
         if (displayId && typeof displayId === "string") {
           this._setDisplayId(displayId);
           this._storageType = "local";
+        } else {
+          this._storageType = "session";
         }
 
         if (this._goPending) {

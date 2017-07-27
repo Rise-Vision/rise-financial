@@ -138,6 +138,8 @@
       if ( displayId && typeof displayId === "string" ) {
         this._setDisplayId( displayId );
         this._storageType = "local";
+      } else {
+        this._storageType = "session";
       }
 
       if ( this._goPending ) {
