@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.11";
+var financialVersion = "2.0.12";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -122,6 +122,7 @@ var financialVersion = "2.0.11";
         this._initialGo = true;
         this._invalidSymbol = false;
         this._firebaseConnected = undefined;
+        this._storageType = "session";
       }
 
       /***************************************** HELPERS ********************************************/
@@ -172,6 +173,9 @@ var financialVersion = "2.0.11";
 
         if (displayId && typeof displayId === "string") {
           this._setDisplayId(displayId);
+          this._storageType = "local";
+        } else {
+          this._storageType = "session";
         }
 
         if (this._goPending) {

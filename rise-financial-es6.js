@@ -95,6 +95,7 @@
       this._initialGo = true;
       this._invalidSymbol = false;
       this._firebaseConnected = undefined;
+      this._storageType = "session";
     }
 
     /***************************************** HELPERS ********************************************/
@@ -136,6 +137,9 @@
 
       if ( displayId && typeof displayId === "string" ) {
         this._setDisplayId( displayId );
+        this._storageType = "local";
+      } else {
+        this._storageType = "session";
       }
 
       if ( this._goPending ) {
