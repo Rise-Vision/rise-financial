@@ -26,7 +26,7 @@
     "wct.conf.js"
   ],
   "dependencies": {
-    "byutv-jsonp": "^1.3.0",
+    "byutv-jsonp": "https://github.com/Rise-Vision/byutv-jsonp.git#91b2675",
     "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
     "polymer": "Polymer/polymer#^1.0.0",
     "rise-data": "https://github.com/Rise-Vision/rise-data.git#1.3.9",
