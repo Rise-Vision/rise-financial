@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.0.13";
+var financialVersion = "2.1.0";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -123,6 +123,8 @@ var financialVersion = "2.0.13";
         this._invalidSymbol = false;
         this._firebaseConnected = undefined;
         this._storageType = "session";
+        this._isCacheRunning = false;
+        this._baseCacheUrl = "https://localhost:9495";
       }
 
       /***************************************** HELPERS ********************************************/
@@ -159,8 +161,10 @@ var financialVersion = "2.0.13";
       }
     }, {
       key: "_onDataPingReceived",
-      value: function _onDataPingReceived() {
+      value: function _onDataPingReceived(detail) {
         this._dataPingReceived = true;
+        this._isCacheRunning = detail.isCacheRunning;
+        this._baseCacheUrl = detail.baseCacheUrl;
 
         if (this._goPending) {
           this.go();
@@ -311,12 +315,14 @@ var financialVersion = "2.0.13";
           // set callback with the same value it was set on the responseHandler of the tqx parameter
           financial.callbackValue = btoa((this.id ? this.id : "") + this._getDataCacheKey()).substr(0, 10);
 
+          financial.riseCacheUrl = this._isCacheRunning ? this._baseCacheUrl + "/financials/?url=" : "";
+
           financial.generateRequest();
         }
       }
     }, {
-      key: "_saveToCache",
-      value: function _saveToCache(data) {
+      key: "_saveToStorage",
+      value: function _saveToStorage(data) {
 
         for (var i = 0; i < data.instruments.length; i++) {
           data.instruments[i].id = data.instruments[i].$id;
@@ -326,8 +332,8 @@ var financialVersion = "2.0.13";
         this.$.data.saveItem(this._getDataCacheKey(), data);
       }
     }, {
-      key: "_getFromCache",
-      value: function _getFromCache(callback) {
+      key: "_getFromStorage",
+      value: function _getFromStorage(callback) {
 
         this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
           if (cachedData) {
@@ -364,7 +370,7 @@ var financialVersion = "2.0.13";
           response.data = resp.table;
         }
 
-        this._saveToCache(response);
+        this._saveToStorage(response);
 
         this.fire("rise-financial-response", response);
         this._startTimer();
@@ -382,7 +388,7 @@ var financialVersion = "2.0.13";
 
         this._log(params);
 
-        this._getFromCache(function (cachedData) {
+        this._getFromStorage(function (cachedData) {
           if (cachedData) {
             _this4.fire("rise-financial-response", cachedData);
           } else if (!_this4._firebaseConnected) {
@@ -513,8 +519,6 @@ var financialVersion = "2.0.13";
     }, {
       key: "go",
       value: function go() {
-        var _this7 = this;
-
         if (!this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived) {
           this._goPending = true;
           return;
@@ -534,18 +538,6 @@ var financialVersion = "2.0.13";
 
           return;
         }
-
-        // provide cached data (if available)
-        this._getFromCache(function (cachedData) {
-          if (!cachedData) {
-            _this7._getData({
-              type: _this7.type,
-              duration: _this7.duration
-            }, _this7._instruments, _this7.instrumentFields);
-          } else {
-            _this7.fire("rise-financial-response", cachedData);
-          }
-        });
       }
     }]);
 
