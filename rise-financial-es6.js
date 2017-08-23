@@ -96,6 +96,8 @@
       this._invalidSymbol = false;
       this._firebaseConnected = undefined;
       this._storageType = "session";
+      this._isCacheRunning = false;
+      this._baseCacheUrl = "https://localhost:9495";
     }
 
     /***************************************** HELPERS ********************************************/
@@ -124,8 +126,10 @@
       }, 60000 );
     }
 
-    _onDataPingReceived() {
+    _onDataPingReceived( detail ) {
       this._dataPingReceived = true;
+      this._isCacheRunning = detail.isCacheRunning;
+      this._baseCacheUrl = detail.baseCacheUrl;
 
       if ( this._goPending ) {
         this.go();
