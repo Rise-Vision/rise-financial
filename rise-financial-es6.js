@@ -268,6 +268,8 @@
         // set callback with the same value it was set on the responseHandler of the tqx parameter
         financial.callbackValue = ( btoa( ( this.id ? this.id : "" ) + this._getDataCacheKey() ) ).substr( 0, 10 );
 
+        financial.riseCacheUrl = this._isCacheRunning ? `${this._baseCacheUrl}/financials/?url=` : "";
+
         financial.generateRequest();
       }
     }
