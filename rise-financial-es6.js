@@ -96,6 +96,8 @@
       this._invalidSymbol = false;
       this._firebaseConnected = undefined;
       this._storageType = "session";
+      this._isCacheRunning = false;
+      this._baseCacheUrl = "https://localhost:9495";
     }
 
     /***************************************** HELPERS ********************************************/
@@ -124,8 +126,10 @@
       }, 60000 );
     }
 
-    _onDataPingReceived() {
+    _onDataPingReceived( detail ) {
       this._dataPingReceived = true;
+      this._isCacheRunning = detail.isCacheRunning;
+      this._baseCacheUrl = detail.baseCacheUrl;
 
       if ( this._goPending ) {
         this.go();
@@ -264,11 +268,13 @@
         // set callback with the same value it was set on the responseHandler of the tqx parameter
         financial.callbackValue = ( btoa( ( this.id ? this.id : "" ) + this._getDataCacheKey() ) ).substr( 0, 10 );
 
+        financial.riseCacheUrl = this._isCacheRunning ? `${this._baseCacheUrl}/financials/?url=` : "";
+
         financial.generateRequest();
       }
     }
 
-    _saveToCache( data ) {
+    _saveToStorage( data ) {
 
       for ( let i = 0; i < data.instruments.length; i++ ) {
         data.instruments[ i ].id = data.instruments[ i ].$id;
@@ -279,7 +285,7 @@
 
     }
 
-    _getFromCache( callback ) {
+    _getFromStorage( callback ) {
 
       this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
         if ( cachedData ) {
@@ -314,7 +320,7 @@
         response.data = resp.table;
       }
 
-      this._saveToCache( response );
+      this._saveToStorage( response );
 
       this.fire( "rise-financial-response", response );
       this._startTimer();
@@ -329,7 +335,7 @@
 
       this._log( params );
 
-      this._getFromCache( ( cachedData ) => {
+      this._getFromStorage( ( cachedData ) => {
         if ( cachedData ) {
           this.fire( "rise-financial-response", cachedData );
         } else if ( !this._firebaseConnected ) {
@@ -470,21 +476,6 @@
         return;
       }
 
-      // provide cached data (if available)
-      this._getFromCache( ( cachedData ) => {
-        if ( !cachedData ) {
-          this._getData(
-            {
-              type: this.type,
-              duration: this.duration,
-            },
-            this._instruments,
-            this.instrumentFields
-          );
-        } else {
-          this.fire( "rise-financial-response", cachedData );
-        }
-      } );
     }
   }
 

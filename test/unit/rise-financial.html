@@ -183,6 +183,25 @@
 
     } );
 
+    suite( "_onDataPingReceived", () => {
+      teardown( () => {
+        financialRequest._isCacheRunning = false;
+        financialRequest._baseCacheUrl = "https://localhost:9495";
+      } );
+
+      test( "should set '_isCacheRunning' and 'baseCacheUrl' values", () => {
+        financialRequest._onDataPingReceived( {
+          isCacheRunning: true,
+          baseCacheUrl: "rchttps://localhost:9495"
+        } );
+
+        assert.isTrue( financialRequest._isCacheRunning );
+        assert.equal( financialRequest._baseCacheUrl, "rchttps://localhost:9495" );
+
+      } );
+
+    } );
+
     suite( "_log", () => {
       let logStub;
 
@@ -425,6 +444,7 @@
       teardown( () => {
         financialRequest.$.financial.generateRequest.restore();
         financialRequest.removeAttribute( "symbol" );
+        financialRequest._isCacheRunning = false;
       } );
 
       test( "should not set attributes of JSONP component for an invalid type", () => {
@@ -438,6 +458,14 @@
         financialRequest._getData( props, instruments, [] );
 
         assert.equal( financial.url, "https://contentfinancial2-test.appspot.com/data" );
+      } );
+
+      test( "should set 'riseCacheUrl' if cache is running", () => {
+        financialRequest._isCacheRunning = true;
+
+        financialRequest._getData( props, instruments, [] );
+
+        assert.equal( financial.riseCacheUrl, "https://localhost:9495/financials/?url=" );
       } );
 
       test( "should set 'params' attribute of JSONP component for single instrument", () => {
@@ -540,7 +568,7 @@
         financialRequest._handleData( e, {} );
       } );
 
-      test( "should cache the data that gets provided in 'rise-financial-response' event", () => {
+      test( "should cache the data that gets provided in 'rise-financial-response' event to browser storage", () => {
         let spy = sinon.spy( financialRequest.$.data, "saveItem" );
 
         financialRequest._handleData( e, realTimeData );
@@ -574,7 +602,7 @@
         setFirebaseConnectionStatus( true );
       } );
 
-      test( "should fire rise-financial-response when cached data exists", ( done ) => {
+      test( "should fire rise-financial-response when cached data from browser storage exists", ( done ) => {
         let listener = ( response ) => {
           assert.deepEqual( response.detail, {
             instruments: instruments,
@@ -599,7 +627,7 @@
         financialRequest._handleError();
       } );
 
-      test( "should fire rise-financial-no-data when cached data doesn't exist", ( done ) => {
+      test( "should fire rise-financial-no-data when cached data from browser storage doesn't exist", ( done ) => {
         let listener = () => {
           financialRequest.removeEventListener( "rise-financial-response", listener );
           financialRequest.removeEventListener( "rise-financial-no-data", listener );
@@ -859,7 +887,7 @@
       } );
 
       test( "should call _getData() when this is the initial go() call", () => {
-        const spy = sinon.spy( financialRequest, "_getData" );
+        const spy = sinon.stub( financialRequest, "_getData" );
 
         financialRequest._displayIdReceived = true;
         financialRequest._instrumentsReceived = true;
@@ -873,35 +901,8 @@
         spy.restore();
       } );
 
-      test( "should execute request when not initial go() call and no cached data available", () => {
-        let requestStub = sinon.stub( financialRequest.$.financial, "generateRequest" );
-
-        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
-          return cb( null );
-        } );
-
-        financialRequest._displayIdReceived = true;
-        financialRequest._instrumentsReceived = true;
-        financialRequest._dataPingReceived = true;
-        financialRequest._initialGo = false;
-
-        financialRequest.go();
-
-        assert.isTrue( requestStub.calledOnce, "request executed" );
-
-        financialRequest.$.data.getItem.restore();
-        financialRequest.$.financial.generateRequest.restore();
-      } );
-
-      test( "should execute request when not initial go() call and refresh is pending", () => {
-        let requestStub = sinon.stub( financialRequest.$.financial, "generateRequest" );
-
-        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
-          return cb( {
-            instruments: instruments,
-            data: realTimeData.table,
-          } );
-        } );
+      test( "should call _getData() when not initial go() call and refresh is pending", () => {
+        const spy = sinon.stub( financialRequest, "_getData" );
 
         financialRequest._displayIdReceived = true;
         financialRequest._instrumentsReceived = true;
@@ -911,40 +912,26 @@
 
         financialRequest.go();
 
-        assert.isTrue( requestStub.calledOnce, "request executed" );
+        assert.isTrue( spy.calledOnce, "_getData is called" );
         assert.isFalse( financialRequest._refreshPending, "_refreshPending set to false" );
 
-        financialRequest.$.data.getItem.restore();
-        financialRequest.$.financial.generateRequest.restore();
+        spy.restore();
       } );
 
-      test( "should fire 'rise-financial-response' with cached data", ( done ) => {
-        const listener = ( response ) => {
-          assert.deepEqual( response.detail, {
-            instruments: instruments,
-            data: realTimeData.table,
-          } );
-
-          financialRequest.removeEventListener( "rise-financial-response", listener );
-          financialRequest.$.data.getItem.restore();
-
-          done();
-        };
-
-        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
-          return cb( {
-            instruments: instruments,
-            data: realTimeData.table,
-          } );
-        } );
+      test( "should not call _getData() when this is not initial go or refresh is not pending", () => {
+        const spy = sinon.stub( financialRequest, "_getData" );
 
         financialRequest._displayIdReceived = true;
         financialRequest._instrumentsReceived = true;
         financialRequest._dataPingReceived = true;
         financialRequest._initialGo = false;
         financialRequest._refreshPending = false;
-        financialRequest.addEventListener( "rise-financial-response", listener );
+
         financialRequest.go();
+
+        assert.equal( spy.callCount, 0, "_getData is not called" );
+
+        spy.restore();
       } );
 
     } );

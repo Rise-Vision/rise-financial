@@ -18,7 +18,7 @@ dependencies:
     - rm google-chrome-stable.deb
     - yarn global add gulp
     - yarn global add bower
-    - yarn global add web-component-tester
+    - yarn global add web-component-tester@6.0.0
   post:
     - bower install
   override:
