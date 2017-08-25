@@ -419,18 +419,18 @@
     }
 
     _handleConnected( snapshot ) {
-      this._firebaseConnected = snapshot.val();
-
       if ( !this._instrumentsReceived ) {
-        if ( !this._firebaseConnected ) {
+        if ( !snapshot.val() ) {
           // account for multiple "false" values being initially returned even though network status is online
           if ( !this.isDebouncerActive( "connected" ) ) {
             this.debounce( "connected", () => {
+              this._firebaseConnected = false;
               this._getInstruments();
             }, 2000 );
           }
         } else {
           this.cancelDebouncer( "connected" );
+          this._firebaseConnected = true;
           this._getInstruments();
         }
       }
