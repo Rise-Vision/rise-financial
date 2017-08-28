@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.1.0";
+var financialVersion = "2.1.1";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -237,6 +237,7 @@ var financialVersion = "2.1.0";
           this._getInstrumentsFromLocalStorage("risefinancial_" + this.financialList, function (instruments) {
             if (instruments) {
               _this2._instrumentsReceived = true;
+              _this2._instruments = instruments;
 
               if (_this2._goPending) {
                 _this2.go();
@@ -481,18 +482,18 @@ var financialVersion = "2.1.0";
       value: function _handleConnected(snapshot) {
         var _this6 = this;
 
-        this._firebaseConnected = snapshot.val();
-
         if (!this._instrumentsReceived) {
-          if (!this._firebaseConnected) {
+          if (!snapshot.val()) {
             // account for multiple "false" values being initially returned even though network status is online
             if (!this.isDebouncerActive("connected")) {
               this.debounce("connected", function () {
+                _this6._firebaseConnected = false;
                 _this6._getInstruments();
               }, 2000);
             }
           } else {
             this.cancelDebouncer("connected");
+            this._firebaseConnected = true;
             this._getInstruments();
           }
         }

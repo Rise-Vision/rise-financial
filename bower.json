@@ -1,6 +1,6 @@
 {
   "name": "rise-financial",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "authors": [
     "Rise Vision"
   ],
@@ -29,7 +29,7 @@
     "byutv-jsonp": "https://github.com/Rise-Vision/byutv-jsonp.git#91b2675",
     "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
     "polymer": "Polymer/polymer#^1.0.0",
-    "rise-data": "https://github.com/Rise-Vision/rise-data.git#2.0.0",
+    "rise-data": "https://github.com/Rise-Vision/rise-data.git#2.0.1",
     "rise-logger": "https://github.com/Rise-Vision/rise-logger.git#1.0.11"
   },
   "devDependencies": {
