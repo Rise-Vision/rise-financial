@@ -194,6 +194,7 @@
         this._getInstrumentsFromLocalStorage( `risefinancial_${ this.financialList }`, ( instruments ) => {
           if ( instruments ) {
             this._instrumentsReceived = true;
+            this._instruments = instruments;
 
             if ( this._goPending ) {
               this.go();

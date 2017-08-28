@@ -297,6 +297,12 @@
           return cb( instruments );
         } );
 
+        localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
+        localStorage.setItem(
+          `risefinancial_${financialRequest.financialList}`,
+          JSON.stringify( instruments )
+        );
+
         financialRequest._instrumentsReceived = false;
         financialRequest._firebaseConnected = false;
 
@@ -304,9 +310,11 @@
 
         assert.isTrue( localStub.calledOnce );
         assert.isTrue( financialRequest._instrumentsReceived );
+        assert.deepEqual( financialRequest._instruments, instruments );
 
         financialRequest._getInstrumentsFromLocalStorage.restore();
         financialRequest._firebaseConnected = true;
+        localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
       } );
 
       test( "should fire 'rise-financial-no-data' if firebase not connected and localStorage empty", ( done ) => {
@@ -610,7 +618,6 @@
           } );
 
           financialRequest.removeEventListener( "rise-financial-response", listener );
-          financialRequest.removeEventListener( "rise-financial-no-data", listener );
           financialRequest.$.data.getItem.restore();
 
           done();
@@ -629,7 +636,6 @@
 
       test( "should fire rise-financial-no-data when cached data from browser storage doesn't exist", ( done ) => {
         let listener = () => {
-          financialRequest.removeEventListener( "rise-financial-response", listener );
           financialRequest.removeEventListener( "rise-financial-no-data", listener );
           financialRequest.$.data.getItem.restore();
 
@@ -663,7 +669,6 @@
 
       test( "should respond with localStorage data if offline", ( done ) => {
         // simulate firebase offline
-        setFirebaseConnectionStatus( false );
         localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
         localStorage.setItem(
           `risefinancial_${financialRequest.financialList}`,
@@ -675,15 +680,14 @@
         } );
 
         const listener = ( response ) => {
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+
           assert.deepEqual(
             response.detail.instruments,
             [ MSFT ]
           );
-
-          financialRequest.removeEventListener( "rise-financial-response", listener );
           localStorage.removeItem( `risefinancial_${financialRequest.financialList}` );
           financialRequest.$.data.getItem.restore();
-          setFirebaseConnectionStatus( true );
 
           done();
         };
@@ -693,6 +697,7 @@
         financialRequest._dataPingReceived = true;
         financialRequest._initialGo = false;
         financialRequest._refreshPending = false;
+        financialRequest._firebaseConnected = false;
         financialRequest.addEventListener( "rise-financial-response", listener );
         financialRequest._handleError();
       } );
