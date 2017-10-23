@@ -99,12 +99,11 @@
         const expected = {
           id: "preview",
           code: "AA.N|AAAPL.O",
-          tqx: "out:json;responseHandler:" + ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ),
           kind: "1M",
         };
 
         financialRequest._getData( props, instrument, [] );
-
+        delete financial.params.tqx;
         assert.deepEqual( financial.params, expected );
       } );
 
@@ -112,13 +111,12 @@
         const expected = {
           id: "preview",
           code: "AAAPL.O",
-          tqx: "out:json;responseHandler:" + ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ),
           kind: "1M",
         };
 
         financialRequest.setAttribute( "symbol", "AAAPL.O" );
         financialRequest._getData( props, instrument, [] );
-
+        delete financial.params.tqx;
         assert.deepEqual( financial.params, expected );
       } );
 

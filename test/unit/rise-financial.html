@@ -240,14 +240,15 @@
     suite( "_getDataCacheKey", () => {
 
       test( "should return correct data cache key", () => {
-        assert.equal( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M_" );
+        assert.include( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M_" );
       } );
 
 
       test( "should return correct data cache key", () => {
-        financialRequest.setAttribute( "symbol", ".YYY" );
-        assert.equal( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M_.YYY" );
+        financialRequest.setAttribute( "symbol", "AA.N" );
+        assert.include( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks_1M_AA.N" );
         financialRequest.setAttribute( "symbol", "" );
+        financialRequest._invalidSymbol = false;
       } );
 
     } );
@@ -399,24 +400,27 @@
     suite( "_getParams", () => {
 
       test( "should return query parameters object", () => {
-        const expected = {
-          id: "preview",
-          code: "AA.N",
-          tq: "select lastPrice,netChange",
-          tqx: "out:json;responseHandler:" + ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ),
-        };
 
-        assert.deepEqual( financialRequest._getParams( [ inst1 ], fields ), expected );
+        const callback = ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ) + Math.random(),
+          expected = {
+            id: "preview",
+            code: "AA.N",
+            tq: "select lastPrice,netChange",
+            tqx: "out:json;responseHandler:" + callback,
+          };
+
+        assert.deepEqual( financialRequest._getParams( [ inst1 ], fields, callback ), expected );
       } );
 
       test( "should return query parameters object with no 'tq' property", () => {
-        const expected = {
-          id: "preview",
-          code: "AA.N",
-          tqx: "out:json;responseHandler:" + ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ),
-        };
+        const callback = ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ) + Math.random(),
+          expected = {
+            id: "preview",
+            code: "AA.N",
+            tqx: "out:json;responseHandler:" + callback,
+          };
 
-        assert.deepEqual( financialRequest._getParams( [ inst1 ], [] ), expected );
+        assert.deepEqual( financialRequest._getParams( [ inst1 ], [], callback ), expected );
       } );
 
     } );
@@ -451,7 +455,7 @@
 
       teardown( () => {
         financialRequest.$.financial.generateRequest.restore();
-        financialRequest.removeAttribute( "symbol" );
+        //financialRequest.removeAttribute( "symbol" );
         financialRequest._isCacheRunning = false;
       } );
 
@@ -477,28 +481,28 @@
       } );
 
       test( "should set 'params' attribute of JSONP component for single instrument", () => {
+
         const expected = {
           id: "preview",
           code: "AA.N",
-          tq: "select lastPrice,netChange",
-          tqx: "out:json;responseHandler:" + ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ),
+          tq: "select lastPrice,netChange"
         };
 
         financialRequest._getData( props, [ inst1 ], fields );
-
+        delete financial.params.tqx;
         assert.deepEqual( financial.params, expected );
       } );
 
       test( "should set 'params' attribute of JSONP component for multiple instruments", () => {
+
         const expected = {
           id: "preview",
           code: "AA.N|.DJI",
-          tq: "select lastPrice,netChange",
-          tqx: "out:json;responseHandler:" + ( btoa( "request" + financialRequest._getDataCacheKey() ) ).substr( 0, 10 ),
+          tq: "select lastPrice,netChange"
         };
 
         financialRequest._getData( props, instruments, fields );
-
+        delete financial.params.tqx;
         assert.deepEqual( financial.params, expected );
       } );
 
@@ -558,6 +562,7 @@
 
         financialRequest.setAttribute( "symbol", ".DJI" );
         financialRequest._invalidSymbol = false;
+        financialRequest._instruments = instruments;
         financialRequest.addEventListener( "rise-financial-response", listener );
         financialRequest._handleData( e, realTimeData );
       } );
@@ -581,7 +586,7 @@
 
         financialRequest._handleData( e, realTimeData );
 
-        assert.equal( spy.args[ 0 ][ 0 ], financialRequest._getDataCacheKey() );
+        assert.include( spy.args[ 0 ][ 0 ], financialRequest._getDataCacheKey() );
 
         assert.deepEqual( spy.args[ 0 ][ 1 ], {
           instruments: instruments_cached,
@@ -724,7 +729,7 @@
 
     } );
 
-    suite( "_financialListChanged", () => {
+    suite( "_financialReset", () => {
       let instrumentsStub;
 
       setup( () => {
@@ -742,7 +747,7 @@
         let fbAppBackup = financialRequest._firebaseApp;
 
         financialRequest._firebaseApp = null;
-        financialRequest._financialListChanged();
+        financialRequest._financialReset();
 
         assert.equal( instrumentsStub.callCount, 0 );
 
@@ -751,7 +756,7 @@
 
       test( "should flag that a go() call is pending", () => {
         financialRequest._goPending = false;
-        financialRequest._financialListChanged();
+        financialRequest._financialReset();
 
         assert.isTrue( financialRequest._goPending );
       } );
@@ -762,7 +767,7 @@
         financialRequest._refreshPending = false;
         financialRequest._initialGo = false;
 
-        financialRequest._financialListChanged();
+        financialRequest._financialReset();
 
         assert.isTrue( cancelStub.calledOnce );
         assert.isTrue( financialRequest._refreshPending );
@@ -771,7 +776,7 @@
       } );
 
       test( "should call _getInstruments()", () => {
-        financialRequest._financialListChanged();
+        financialRequest._financialReset();
 
         assert.isTrue( instrumentsStub.calledOnce );
       } );
