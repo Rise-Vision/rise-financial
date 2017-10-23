@@ -59,10 +59,18 @@
 
     suite( "financial list id change", () => {
 
-      test( "should call _financialListChanged()", () => {
-        let changedStub = sinon.stub( financialRequest, "_financialListChanged" );
+      test( "should call _financialReset()", () => {
+        let changedStub = sinon.stub( financialRequest, "_financialReset" );
 
         financialRequest.setAttribute( "financial-list", "abc123" );
+        assert.isTrue( changedStub.calledOnce );
+        changedStub.restore();
+      } );
+
+      test( "should call _financialReset()", () => {
+        let changedStub = sinon.stub( financialRequest, "_financialReset" );
+
+        financialRequest.setAttribute( "symbol", "abc123" );
         assert.isTrue( changedStub.calledOnce );
         changedStub.restore();
       } );

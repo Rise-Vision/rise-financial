@@ -54,7 +54,7 @@
         financialList: {
           type: String,
           value: "",
-          observer: "_financialListChanged"
+          observer: "_financialReset"
         },
 
         /**
@@ -81,7 +81,8 @@
          */
         symbol: {
           type: String,
-          value: ""
+          value: "",
+          observer: "_financialReset"
         }
 
       };
@@ -228,14 +229,13 @@
 
     /***************************************** FINANCIAL ******************************************/
 
-    _getParams( instruments, fields ) {
-      let id = ( this.id ) ? this.id : "";
+    _getParams( instruments, fields, callback ) {
 
       return Object.assign( {},
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
-          tqx: "out:json;responseHandler:" + ( btoa( id + this._getDataCacheKey() ) ).substr( 0, 10 )
+          tqx: "out:json;responseHandler:" + callback
         },
         fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
@@ -253,8 +253,12 @@
         return;
       }
 
-      const financial = this.$.financial,
-        params = this._getParams( instruments, fields );
+      const financial = this.$.financial;
+
+      // set callback with the same value it was set on the responseHandler of the tqx parameter
+      financial.callbackValue = ( btoa( ( this.id ? this.id : "" ) + this._getDataCacheKey() ) ).substr( 0, 10 ) + ( Math.random().toString() ).substring( 2 );
+
+      let params = this._getParams( instruments, fields, financial.callbackValue );
 
       if ( !this._invalidSymbol ) {
 
@@ -266,8 +270,7 @@
         }
 
         financial.params = params;
-        // set callback with the same value it was set on the responseHandler of the tqx parameter
-        financial.callbackValue = ( btoa( ( this.id ? this.id : "" ) + this._getDataCacheKey() ) ).substr( 0, 10 );
+
 
         financial.riseCacheUrl = this._isCacheRunning ? `${this._baseCacheUrl}/financials/?url=` : "";
 
@@ -402,7 +405,7 @@
       this._log( params );
     }
 
-    _financialListChanged() {
+    _financialReset() {
       if ( !this._firebaseApp ) {
         return;
       }

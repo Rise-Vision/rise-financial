@@ -19,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "2.1.1";
+var financialVersion = "2.1.2";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -81,7 +81,7 @@ var financialVersion = "2.1.1";
           financialList: {
             type: String,
             value: "",
-            observer: "_financialListChanged"
+            observer: "_financialReset"
           },
 
           /**
@@ -108,7 +108,8 @@ var financialVersion = "2.1.1";
            */
           symbol: {
             type: String,
-            value: ""
+            value: "",
+            observer: "_financialReset"
           }
 
         };
@@ -275,13 +276,12 @@ var financialVersion = "2.1.1";
 
     }, {
       key: "_getParams",
-      value: function _getParams(instruments, fields) {
-        var id = this.id ? this.id : "";
+      value: function _getParams(instruments, fields, callback) {
 
         return Object.assign({}, {
           id: this.displayId,
           code: this._getSymbols(instruments),
-          tqx: "out:json;responseHandler:" + btoa(id + this._getDataCacheKey()).substr(0, 10)
+          tqx: "out:json;responseHandler:" + callback
         }, fields.length > 0 ? { tq: this._getQueryString(fields) } : null);
       }
     }, {
@@ -300,8 +300,12 @@ var financialVersion = "2.1.1";
           return;
         }
 
-        var financial = this.$.financial,
-            params = this._getParams(instruments, fields);
+        var financial = this.$.financial;
+
+        // set callback with the same value it was set on the responseHandler of the tqx parameter
+        financial.callbackValue = btoa((this.id ? this.id : "") + this._getDataCacheKey()).substr(0, 10) + Math.random().toString().substring(2);
+
+        var params = this._getParams(instruments, fields, financial.callbackValue);
 
         if (!this._invalidSymbol) {
 
@@ -313,8 +317,6 @@ var financialVersion = "2.1.1";
           }
 
           financial.params = params;
-          // set callback with the same value it was set on the responseHandler of the tqx parameter
-          financial.callbackValue = btoa((this.id ? this.id : "") + this._getDataCacheKey()).substr(0, 10);
 
           financial.riseCacheUrl = this._isCacheRunning ? this._baseCacheUrl + "/financials/?url=" : "";
 
@@ -460,8 +462,8 @@ var financialVersion = "2.1.1";
         this._log(params);
       }
     }, {
-      key: "_financialListChanged",
-      value: function _financialListChanged() {
+      key: "_financialReset",
+      value: function _financialReset() {
         if (!this._firebaseApp) {
           return;
         }

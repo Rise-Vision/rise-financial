@@ -1,6 +1,6 @@
 {
   "name": "rise-financial",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Rise Vision web component for managing financial data",
   "scripts": {
     "test": "cross-env NODE_ENV=test gulp test",
@@ -34,7 +34,7 @@
     "eslint": "^3.8.1",
     "eslint-config-idiomatic": "^2.1.0",
     "eslint-plugin-html": "^1.6.0",
-    "gulp": "~3.8.10",
+    "gulp": "^3.8.11",
     "gulp-babel": "^6.1.2",
     "gulp-bower": "~0.0.10",
     "gulp-bump": "~0.2.0",
